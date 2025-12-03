@@ -4,11 +4,11 @@ import { ShieldCheck } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS } from '../constants/theme';
 
-const OnboardingScreen = ({ user, setUser, setView }) => {
+const OnboardingScreen = ({ user, setUser, onComplete }) => {
   const handleStart = async () => {
     if (user.nick && user.apiEndpoint) {
       await AsyncStorage.setItem('fa_user', JSON.stringify(user));
-      setView('daily');
+      onComplete();
     } else {
       Alert.alert("Wymagany Nick i URL");
     }
