@@ -165,13 +165,13 @@ export default function App() {
     }
   };
 
-  const pushEntry = async (entry) => {
+  const pushEntry = async (entry, action = 'save') => {
     if (!user.apiEndpoint) return;
     try {
       await fetch(user.apiEndpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain' }, 
-        body: JSON.stringify({ ...entry, token: user.apiToken })
+        body: JSON.stringify({ ...entry, token: user.apiToken, action })
       });
     } catch (e) { console.log("Push fail", e); }
   };
@@ -207,7 +207,7 @@ export default function App() {
     setHistory(newHistory);
     await AsyncStorage.setItem('fa_history', JSON.stringify(newHistory));
     
-    pushEntry(newEntry); 
+    pushEntry(newEntry, 'save'); 
     
     setDailyEntry({ mood: 3, text: '', habits: [] });
     setEditingId(null);
@@ -218,6 +218,9 @@ export default function App() {
     const newHistory = history.filter(h => h.id !== id);
     setHistory(newHistory);
     await AsyncStorage.setItem('fa_history', JSON.stringify(newHistory));
+    
+    pushEntry({ id }, 'delete');
+
     if (editingId === id) {
       setEditingId(null);
       setDailyEntry({ mood: 3, text: '', habits: [] });
