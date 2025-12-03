@@ -137,7 +137,7 @@ const DailyScreen = ({
                 {e.habits && e.habits.map((h, idx) => {
                   const habitName = typeof h === 'object' ? h.name : 'Nawyk';
                   return (
-                    <View key={idx} style={{backgroundColor: COLORS.emerald50, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, borderWidth: 1, borderColor: COLORS.emerald200}}>
+                    <View key={idx} style={{backgroundColor: COLORS.emerald50, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, borderWidth: 1, borderColor: COLORS.emerald400}}>
                       <Text style={{fontSize: 10, color: COLORS.emerald600, fontWeight: '700'}}>{habitName}</Text>
                     </View>
                   );
