@@ -1,0 +1,72 @@
+# Instrukcja generowania aplikacji (Android & iOS)
+
+## 1. Android (Plik .apk)
+Możesz to zrobić na Windowsie lub Macu. Nie potrzebujesz płatnego konta Google.
+
+1.  Otwórz terminal w folderze projektu.
+2.  Upewnij się, że jesteś zalogowany do EAS:
+    ```bash
+    eas login
+    ```
+3.  Uruchom budowanie w chmurze:
+    ```bash
+    eas build --platform android --profile preview
+    ```
+4.  Gdy proces się zakończy, otrzymasz link do pobrania pliku `.apk`.
+5.  Pobierz plik na telefon i zainstaluj go.
+
+### Aktualizacja aplikacji (Android)
+Jeśli wprowadzisz zmiany w kodzie i chcesz wygenerować nową wersję:
+1.  (Opcjonalnie) Zmień numer wersji w `app.json` (np. `version: "1.0.1"`), aby wiedzieć, że to nowa wersja.
+2.  Uruchom ponownie tę samą komendę:
+    ```bash
+    eas build --platform android --profile preview
+    ```
+3.  Pobierz i zainstaluj nowy plik `.apk` (nadpisze starą wersję na telefonie).
+
+---
+
+## 2. iOS (Wymagany Mac + Darmowe Apple ID)
+Ponieważ nie masz płatnego konta Apple Developer ($99), musisz użyć Maca i kabla USB.
+
+### Krok A: Przygotowanie środowiska (na Macu)
+1.  Pobierz i zainstaluj **Xcode** z Mac App Store.
+2.  Zainstaluj **Node.js** (ze strony nodejs.org).
+3.  Skopiuj folder z projektem na Maca.
+4.  W terminalu w folderze projektu wpisz:
+    ```bash
+    npm install
+    ```
+
+### Krok B: Generowanie projektu natywnego
+W terminalu wpisz:
+```bash
+npx expo prebuild --platform ios
+```
+To utworzy folder `ios` w Twoim projekcie.
+
+### Krok C: Konfiguracja w Xcode
+1.  Otwórz projekt w Xcode:
+    ```bash
+    xed ios
+    ```
+    (lub otwórz plik `ios/FeelingAlignment.xcworkspace` ręcznie).
+2.  W Xcode kliknij na główny projekt (niebieska ikona po lewej na górze).
+3.  Wybierz zakładkę **Signing & Capabilities**.
+4.  Kliknij **Add Account** i zaloguj się swoim darmowym Apple ID.
+5.  W polu **Team** wybierz swoje imię/nazwisko (Personal Team).
+6.  Jeśli pojawi się błąd o "Bundle Identifier", zmień go na unikalny (np. dopisz cyfry na końcu).
+
+### Krok D: Instalacja na iPhonie
+1.  Podłącz iPhone'a kablem do Maca.
+2.  W Xcode na górnym pasku wybierz swój telefon z listy urządzeń (zamiast symulatora).
+3.  Kliknij przycisk **Play** (trójkąt) w lewym górnym rogu.
+4.  Poczekaj, aż aplikacja się zbuduje i zainstaluje.
+
+### Krok E: Uruchomienie
+1.  Na iPhonie wejdź w **Ustawienia -> Ogólne -> VPN i zarządzanie urządzeniami**.
+2.  Kliknij w swój email (Developer App).
+3.  Wybierz **Zaufaj** (Trust).
+4.  Teraz możesz uruchomić aplikację!
+
+> **Ważne:** Na darmowym koncie aplikacja wygasa co **7 dni**. Po tym czasie musisz ponownie podłączyć telefon do Maca i kliknąć "Play" w Xcode, aby ją odświeżyć.
