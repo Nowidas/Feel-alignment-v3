@@ -321,19 +321,19 @@ export default function App() {
 
       <View style={styles.navBar}>
         <TouchableOpacity style={styles.navBtn} onPress={() => setView('daily')}>
-          <BookHeart size={24} color={view==='daily'?COLORS.stone800:COLORS.stone400}/>
+          <BookHeart size={24} color={view==='daily'?COLORS.white:COLORS.stone400}/>
           <Text style={[styles.navText, view==='daily'&&styles.navTextActive]}>Dziś</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navBtn} onPress={() => setView('history')}>
-          <Users size={24} color={view==='history'?COLORS.stone800:COLORS.stone400}/>
+          <Users size={24} color={view==='history'?COLORS.white:COLORS.stone400}/>
           <Text style={[styles.navText, view==='history'&&styles.navTextActive]}>Historia</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navBtn} onPress={() => setView('stats')}>
-          <BarChart2 size={24} color={view==='stats'?COLORS.stone800:COLORS.stone400}/>
+          <BarChart2 size={24} color={view==='stats'?COLORS.white:COLORS.stone400}/>
           <Text style={[styles.navText, view==='stats'&&styles.navTextActive]}>Statystyki</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navBtn} onPress={() => setView('settings')}>
-          <Settings size={24} color={view==='settings'?COLORS.stone800:COLORS.stone400}/>
+          <Settings size={24} color={view==='settings'?COLORS.white:COLORS.stone400}/>
           <Text style={[styles.navText, view==='settings'&&styles.navTextActive]}>Opcje</Text>
         </TouchableOpacity>
       </View>
@@ -350,8 +350,8 @@ const styles = StyleSheet.create({
   avatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: COLORS.stone200, justifyContent: 'center', alignItems: 'center', shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 },
   avatarText: { fontSize: 16, fontWeight: 'bold', color: COLORS.stone600 },
   scrollContent: { flex: 1, paddingHorizontal: 20 },
-  navBar: { position: 'absolute', bottom: 30, left: 20, right: 20, backgroundColor: COLORS.stone900, borderRadius: 24, flexDirection: 'row', justifyContent: 'space-around', paddingVertical: 15, shadowColor: "#000", shadowOffset: {width: 0, height: 10}, shadowOpacity: 0.2, shadowRadius: 20, elevation: 10 },
-  navBtn: { alignItems: 'center', gap: 4 },
+  navBar: { position: 'absolute', bottom: 30, left: 20, right: 20, backgroundColor: COLORS.stone900, borderRadius: 24, flexDirection: 'row', justifyContent: 'space-around', paddingVertical: 10, shadowColor: "#000", shadowOffset: {width: 0, height: 10}, shadowOpacity: 0.2, shadowRadius: 20, elevation: 10 },
+  navBtn: { alignItems: 'center', gap: 4, padding: 10, minWidth: 60 },
   navText: { fontSize: 10, color: COLORS.stone400, fontWeight: '600' },
   navTextActive: { color: COLORS.white },
 });
