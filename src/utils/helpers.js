@@ -83,11 +83,11 @@ export const getVirtualMissingEntries = (userHabits, userHistory, userNick) => {
 };
 
 export const getMoodColor = (val) => {
-  // Import COLORS here or pass it, but since it's a helper, let's hardcode or import
-  // Better to import COLORS from theme
-  // But for simplicity in this file, I'll assume COLORS is available or I'll re-import it.
-  // Let's re-import to be safe.
-  return val <= 3 ? '#f43f5e' : val <= 6 ? '#f59e0b' : '#059669';
+  if (val <= 1) return '#f43f5e'; // Red
+  if (val === 2) return '#f59e0b'; // Orange
+  if (val === 3) return '#a8a29e'; // Lighter Gray (Neutral)
+  if (val === 4) return '#059669'; // Green (Standard)
+  return '#8b5cf6'; // Violet (Epic)
 };
 
 export const getMoodIcon = (val, Frown, Meh, Smile, COLORS) => {

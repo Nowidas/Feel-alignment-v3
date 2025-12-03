@@ -53,16 +53,33 @@ const StatsScreen = ({ history, user, userHabits }) => {
       if (currentCalcStreak > maxStreak) maxStreak = currentCalcStreak;
   }
 
-  // Average Mood
-  const avgMood = myEntries.length > 0 
-    ? (myEntries.reduce((acc, curr) => acc + curr.mood, 0) / myEntries.length).toFixed(1) 
-    : 0;
+  // Average Mood (Last 30 days)
+  const getAvgMood = (entries) => {
+      const last30 = entries.filter(e => {
+          const d = new Date(e.date);
+          const limit = new Date();
+          limit.setDate(limit.getDate() - 30);
+          return d >= limit;
+      });
+      return last30.length > 0 
+        ? (last30.reduce((acc, curr) => acc + curr.mood, 0) / last30.length).toFixed(1) 
+        : 0;
+  };
+
+  const avgMood = getAvgMood(myEntries);
 
   // Partner Entries
   const partnerEntries = user.partnerNick 
     ? history.filter(h => h.nick === user.partnerNick).sort((a, b) => new Date(b.date) - new Date(a.date))
     : [];
+  const partnerAvgMood = getAvgMood(partnerEntries);
   const partnerEntriesCount = partnerEntries.length;
+
+  const getDynamicMoodColor = (val) => {
+      if (val <= 2.7) return '#f43f5e'; // Red
+      if (val <= 3.2) return '#a8a29e'; // Gray
+      return '#059669'; // Green
+  };
 
   // Partner Max Streak
   let partnerMaxStreak = 0;
@@ -157,10 +174,21 @@ const StatsScreen = ({ history, user, userHabits }) => {
                     <View style={[styles.iconBox, {backgroundColor: COLORS.emerald50}]}>
                         <Activity size={20} color={COLORS.emerald500} />
                     </View>
-                    <Text style={styles.statLabel}>Śr. Mood</Text>
+                    <Text style={styles.statLabel}>Śr. Mood (30d)</Text>
                 </View>
-                <Text style={[styles.statValue, {color: getMoodColor(Math.round(avgMood))}]}>{avgMood}</Text>
-                <Text style={styles.subStat}>/ 10</Text>
+                <Text style={[styles.statValue, {color: getDynamicMoodColor(avgMood)}]}>{avgMood}</Text>
+                <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 4}}>
+                    <Text style={styles.subStat}>/ 5</Text>
+                    {user.partnerNick ? (
+                        <View style={{alignItems: 'flex-end'}}>
+                            <View style={{flexDirection: 'row', alignItems: 'center', gap: 2}}>
+                                <Users size={10} color={COLORS.stone400} />
+                                <Text style={{fontSize: 9, color: COLORS.stone400, fontWeight: '600'}}>{user.partnerNick}</Text>
+                            </View>
+                            <Text style={{fontSize: 11, fontWeight: '600', color: getDynamicMoodColor(partnerAvgMood)}}>{partnerAvgMood}</Text>
+                        </View>
+                    ) : null}
+                </View>
             </View>
           </View>
 

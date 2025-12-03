@@ -14,7 +14,11 @@ const DailyScreen = ({
   const [calendarViewDate, setCalendarViewDate] = useState(new Date());
 
   const getMoodIconComponent = (val) => {
-      return val <= 3 ? <Frown size={40} color={COLORS.rose500}/> : val <= 6 ? <Meh size={40} color={COLORS.amber500}/> : <Smile size={40} color={COLORS.emerald600}/>;
+      if (val <= 1) return <Frown size={40} color={COLORS.rose500}/>;
+      if (val === 2) return <Meh size={40} color={COLORS.amber500}/>;
+      if (val === 3) return <Meh size={40} color={COLORS.stone400}/>;
+      if (val === 4) return <Smile size={40} color={COLORS.emerald600}/>;
+      return <Smile size={40} color={'#8b5cf6'}/>;
   };
 
   const renderCalendar = () => {
@@ -49,7 +53,7 @@ const DailyScreen = ({
           ]} 
           onPress={() => {
             setSelectedDate(dateStr);
-            setDailyEntry({mood: 5, text: '', habits: []});
+            setDailyEntry({mood: 3, text: '', habits: []});
             // setEditingId(null); // This should be handled by parent or passed down
             setIsCalendarOpen(false);
           }}
@@ -102,10 +106,10 @@ const DailyScreen = ({
 
           return (
             <>
-              <TouchableOpacity style={[styles.dateBtn, isToday && styles.dateBtnActive]} onPress={() => {setSelectedDate(todayStr); setDailyEntry({mood:5,text:'',habits:[]}); }}>
+              <TouchableOpacity style={[styles.dateBtn, isToday && styles.dateBtnActive]} onPress={() => {setSelectedDate(todayStr); setDailyEntry({mood:3,text:'',habits:[]}); }}>
                 <Text style={[styles.dateBtnText, isToday && styles.dateBtnTextActive]}>Dziś</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={[styles.dateBtn, isYesterday && styles.dateBtnActive]} onPress={() => {setSelectedDate(yesterdayStr); setDailyEntry({mood:5,text:'',habits:[]}); }}>
+              <TouchableOpacity style={[styles.dateBtn, isYesterday && styles.dateBtnActive]} onPress={() => {setSelectedDate(yesterdayStr); setDailyEntry({mood:3,text:'',habits:[]}); }}>
                 <Text style={[styles.dateBtnText, isYesterday && styles.dateBtnTextActive]}>Wczoraj</Text>
               </TouchableOpacity>
               <TouchableOpacity style={[styles.dateBtn, isOther && styles.dateBtnActive]} onPress={() => setIsCalendarOpen(!isCalendarOpen)}>
@@ -120,7 +124,7 @@ const DailyScreen = ({
       <View style={styles.card}>
         <View style={{alignItems: 'center', marginBottom: 20}}>
             {getMoodIconComponent(dailyEntry.mood)}
-            <Text style={[styles.moodValue, { color: getMoodColor(dailyEntry.mood) }]}>{dailyEntry.mood}/10</Text>
+            <Text style={[styles.moodValue, { color: getMoodColor(dailyEntry.mood) }]}>{dailyEntry.mood}/5</Text>
             <MoodSlider value={dailyEntry.mood} onChange={(v) => setDailyEntry({...dailyEntry, mood: v})} />
         </View>
         <View style={styles.habitsGrid}>{userHabits.filter(h => isHabitActiveForDate(h, selectedDate)).map(h => { const isActive = dailyEntry.habits.includes(h.id); const Icon = ICON_MAP[h.icon] || Check; return ( <TouchableOpacity key={h.id} style={[styles.habitChip, isActive && styles.habitChipActive, h.mandatory && !isActive && styles.habitChipMandatory]} onPress={() => { const newH = isActive ? dailyEntry.habits.filter(id => id !== h.id) : [...dailyEntry.habits, h.id]; setDailyEntry({...dailyEntry, habits: newH}); }}><Icon size={14} color={isActive ? COLORS.white : COLORS.stone500} /><Text style={[styles.habitText, isActive && styles.habitTextActive]}>{h.name}</Text></TouchableOpacity> )})}</View>

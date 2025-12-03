@@ -209,7 +209,7 @@ export default function App() {
     
     pushEntry(newEntry); 
     
-    setDailyEntry({ mood: 5, text: '', habits: [] });
+    setDailyEntry({ mood: 3, text: '', habits: [] });
     setEditingId(null);
     showToast("Twój dzień został zapisany.");
   };
@@ -220,7 +220,7 @@ export default function App() {
     await AsyncStorage.setItem('fa_history', JSON.stringify(newHistory));
     if (editingId === id) {
       setEditingId(null);
-      setDailyEntry({ mood: 5, text: '', habits: [] });
+      setDailyEntry({ mood: 3, text: '', habits: [] });
     }
   };
 

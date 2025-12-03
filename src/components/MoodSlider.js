@@ -9,7 +9,7 @@ const MoodSlider = ({ value, onChange }) => {
       <Slider
         style={{width: '100%', height: 40}}
         minimumValue={1}
-        maximumValue={10}
+        maximumValue={5}
         step={1}
         value={value}
         onValueChange={onChange}
@@ -18,7 +18,7 @@ const MoodSlider = ({ value, onChange }) => {
         thumbTintColor={COLORS.stone800}
       />
       <View style={styles.sliderMarkers}>
-        {[1, 5, 10].map(n => (
+        {[1, 3, 5].map(n => (
           <Text key={n} style={styles.sliderMarkerText}>{n}</Text>
         ))}
       </View>
