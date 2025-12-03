@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Edit2, Trash2, Check, X } from 'lucide-react-native';
-import { COLORS } from '../constants/theme';
+import { COLORS, ICON_MAP } from '../constants/theme';
 import { formatDateLabel, getMoodColor, isHabitActiveForDate, getVirtualMissingEntries } from '../utils/helpers';
 
 const HistoryScreen = ({ history, user, userHabits, onEdit, onDelete }) => {
@@ -54,7 +54,8 @@ const HistoryScreen = ({ history, user, userHabits, onEdit, onDelete }) => {
                     
                     {entry.habits && entry.habits.map((h, i) => {
                         const habitName = typeof h === 'object' ? h.name : 'Nawyk';
-                        return (<View key={`done-${i}`} style={styles.habitBadge}><Check size={10} color={COLORS.emerald600} /><Text style={styles.habitBadgeText}>{habitName}</Text></View>)
+                        const IconComponent = (typeof h === 'object' && h.icon && ICON_MAP[h.icon]) ? ICON_MAP[h.icon] : Check;
+                        return (<View key={`done-${i}`} style={styles.habitBadge}><IconComponent size={10} color={COLORS.stone600} /><Text style={styles.habitBadgeText}>{habitName}</Text></View>)
                     })}
                     
                     {skippedHabits.map((h, i) => (
@@ -80,8 +81,8 @@ const styles = StyleSheet.create({
   historyDate: { fontSize: 12, fontWeight: '700', color: COLORS.stone400, textTransform: 'uppercase', marginTop: 8 },
   moodBadge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8 },
   moodBadgeText: { fontSize: 10, fontWeight: '800' },
-  habitBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: COLORS.emerald50, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12, borderWidth: 1, borderColor: COLORS.emerald400 },
-  habitBadgeText: { fontSize: 10, fontWeight: '700', color: COLORS.emerald600 },
+  habitBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: COLORS.stone100, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12, borderWidth: 1, borderColor: COLORS.stone300 },
+  habitBadgeText: { fontSize: 10, fontWeight: '700', color: COLORS.stone600 },
   historyText: { marginTop: 6, fontSize: 13, color: COLORS.stone600, lineHeight: 18 },
 });
 
