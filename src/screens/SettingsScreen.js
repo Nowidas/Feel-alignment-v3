@@ -81,6 +81,35 @@ const SettingsScreen = ({ user, setUser, userHabits, setUserHabits, syncWithClou
        <View style={styles.inputGroup}><Text style={styles.label}>Godzina przypomnienia</Text><TouchableOpacity onPress={()=>setShowTimePicker(true)} style={styles.input}><Text>{user.notificationTime}</Text></TouchableOpacity></View>
        {showTimePicker && (<DateTimePicker value={getNotificationDateObj()} mode="time" is24Hour={true} display="default" onChange={onTimeChange} />)}
        
+       <View style={styles.inputGroup}>
+         <Text style={styles.label}>Godzina zmiany dnia (0-23)</Text>
+         <TextInput 
+           style={styles.input} 
+           keyboardType="numeric" 
+           maxLength={2}
+           value={String(user.dayCutoffHour !== undefined ? user.dayCutoffHour : 4)} 
+           onChangeText={t => {
+             if (t === '') {
+               setUser({...user, dayCutoffHour: ''});
+               return;
+             }
+             const val = parseInt(t);
+             if (!isNaN(val) && val >= 0 && val <= 23) {
+               const newUser = {...user, dayCutoffHour: val};
+               setUser(newUser);
+               AsyncStorage.setItem('fa_user', JSON.stringify(newUser));
+             }
+           }}
+           onEndEditing={() => {
+             let finalVal = user.dayCutoffHour;
+             if (finalVal === '' || isNaN(finalVal)) finalVal = 4;
+             const newUser = {...user, dayCutoffHour: finalVal};
+             setUser(newUser);
+             AsyncStorage.setItem('fa_user', JSON.stringify(newUser));
+           }}
+         />
+       </View>
+       
        <View style={{marginTop:20, borderTopWidth:1, borderColor:COLORS.stone100, paddingTop:10}}>
          <Text style={styles.sectionTitle}>Zarządzanie Nawykami</Text>
          <View style={styles.addHabitForm}><Text style={styles.subLabel}>Dodaj nowy</Text>

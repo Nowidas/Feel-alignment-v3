@@ -35,7 +35,7 @@ export default function App() {
   // --- STATE ---
   const [view, setView] = useState('loading'); 
   const [user, setUser] = useState({ 
-    nick: '', partnerNick: '', notificationTime: '20:00', apiEndpoint: '', apiToken: '' 
+    nick: '', partnerNick: '', notificationTime: '20:00', apiEndpoint: '', apiToken: '', dayCutoffHour: 4 
   });
   
   const [selectedDate, setSelectedDate] = useState(getInitialDate());
@@ -76,7 +76,9 @@ export default function App() {
 
       if (savedUser) {
         const u = JSON.parse(savedUser);
+        if (u.dayCutoffHour === undefined) u.dayCutoffHour = 4;
         setUser(u);
+        setSelectedDate(getInitialDate(u.dayCutoffHour));
         setView('daily');
         if (u.apiEndpoint) syncWithCloud(u, false); 
       } else {

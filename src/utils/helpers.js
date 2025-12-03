@@ -6,9 +6,9 @@ export const getLocalYYYYMMDD = (date) => {
   return `${year}-${month}-${day}`;
 };
 
-export const getInitialDate = () => {
+export const getInitialDate = (cutoffHour = 4) => {
   const now = new Date();
-  if (now.getHours() < 2) {
+  if (now.getHours() < cutoffHour) {
     const yesterday = new Date(now);
     yesterday.setDate(yesterday.getDate() - 1);
     return getLocalYYYYMMDD(yesterday);
