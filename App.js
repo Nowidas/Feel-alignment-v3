@@ -134,16 +134,16 @@ export default function App() {
       const [hours, minutes] = timeStr.split(':').map(Number);
       if (isNaN(hours) || isNaN(minutes)) return;
 
-      // If this is NOT a user action (e.g. app start), check if we already have ANY scheduled notification.
-      // If we do, we assume it's correct and don't touch it to avoid "notification on launch" spam.
-      if (!isUserAction) {
-        const scheduled = await Notifications.getAllScheduledNotificationsAsync();
-        if (scheduled.length > 0) {
-          return;
-        }
+      // Check if we already scheduled this time to prevent re-scheduling on every launch
+      const lastScheduled = await AsyncStorage.getItem('lastScheduledNotificationTime');
+      
+      if (!isUserAction && lastScheduled === timeStr) {
+        // We assume it's already set correctly. 
+        // We skip the system check to be absolutely sure we don't trigger anything.
+        return;
       }
 
-      // If user changed time OR nothing is scheduled, we reset.
+      // If user changed time OR it's a new schedule
       await Notifications.cancelAllScheduledNotificationsAsync();
 
       await Notifications.scheduleNotificationAsync({
@@ -159,6 +159,9 @@ export default function App() {
           channelId: 'daily-reminder',
         },
       });
+
+      // Save the scheduled time
+      await AsyncStorage.setItem('lastScheduledNotificationTime', timeStr);
 
       if (isUserAction) Alert.alert("Ustawiono", `Przypomnienie o ${timeStr}`);
     } catch (error) {
