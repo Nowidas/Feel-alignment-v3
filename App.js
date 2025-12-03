@@ -17,6 +17,7 @@ import DailyScreen from './src/screens/DailyScreen';
 import HistoryScreen from './src/screens/HistoryScreen';
 import StatsScreen from './src/screens/StatsScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
+import Toast from './src/components/Toast';
 
 // Import Constants & Utils
 import { COLORS, JOURNAL_PROMPTS } from './src/constants/theme';
@@ -43,15 +44,20 @@ export default function App() {
   const [editingId, setEditingId] = useState(null);
   const [history, setHistory] = useState([]);
   const [userHabits, setUserHabits] = useState([]);
+  const [toast, setToast] = useState(null);
   
   const [isSyncing, setIsSyncing] = useState(false);
   const scrollViewRef = useRef(null);
+
+  const showToast = (msg, type = 'success') => {
+    setToast({ msg, type, id: Date.now() });
+  };
 
   const currentPrompt = useMemo(() => {
     return JOURNAL_PROMPTS[Math.floor(Math.random() * JOURNAL_PROMPTS.length)];
   }, [selectedDate]);
 
-  // --- INIT ---
+  // --- INIT ---r
   useEffect(() => {
     loadData();
   }, []);
@@ -150,7 +156,7 @@ export default function App() {
         const sorted = relevantData.sort((a, b) => new Date(b.date) - new Date(a.date));
         setHistory(sorted);
         await AsyncStorage.setItem('fa_history', JSON.stringify(sorted));
-        if (showAlert) Alert.alert("Sukces", "Synchronizacja zakończona");
+        if (showAlert) showToast("Synchronizacja zakończona");
       }
     } catch (e) {
       if (showAlert) Alert.alert("Błąd Sync", e.message);
@@ -205,7 +211,7 @@ export default function App() {
     
     setDailyEntry({ mood: 5, text: '', habits: [] });
     setEditingId(null);
-    Alert.alert("Zapisano", "Twój dzień został zapisany.");
+    showToast("Twój dzień został zapisany.");
   };
 
   const deleteEntry = async (id) => {
@@ -339,6 +345,7 @@ export default function App() {
           <Text style={[styles.navText, view==='settings'&&styles.navTextActive]}>Opcje</Text>
         </TouchableOpacity>
       </View>
+      <Toast message={toast?.msg} type={toast?.type} onHide={() => setToast(null)} />
     </SafeAreaView>
     </SafeAreaProvider>
   );

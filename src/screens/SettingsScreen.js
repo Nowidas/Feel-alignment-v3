@@ -75,6 +75,9 @@ const SettingsScreen = ({ user, setUser, userHabits, setUserHabits, syncWithClou
        <Text style={styles.sectionTitle}>Ustawienia</Text>
        <View style={styles.settingRow}><Text>Synchronizacja</Text><TouchableOpacity onPress={()=>syncWithCloud(user, true)}><RefreshCw size={20} color={COLORS.stone800} className={isSyncing?'animate-spin':''}/></TouchableOpacity></View>
        
+       <View style={styles.inputGroup}><Text style={styles.label}>Twój Nick</Text><TextInput style={styles.input} value={user.nick} onChangeText={t => setUser({...user, nick: t})} onEndEditing={() => AsyncStorage.setItem('fa_user', JSON.stringify(user))} /></View>
+       <View style={styles.inputGroup}><Text style={styles.label}>Nick Znajomego</Text><TextInput style={styles.input} value={user.partnerNick} onChangeText={t => setUser({...user, partnerNick: t})} onEndEditing={() => AsyncStorage.setItem('fa_user', JSON.stringify(user))} /></View>
+
        <View style={styles.inputGroup}><Text style={styles.label}>API Endpoint</Text><TextInput style={[styles.input, {fontSize: 10}]} value={user.apiEndpoint} onChangeText={t => setUser({...user, apiEndpoint: t})} onEndEditing={() => AsyncStorage.setItem('fa_user', JSON.stringify(user))} /></View>
        <View style={styles.inputGroup}><Text style={styles.label}>API Token</Text><TextInput style={styles.input} secureTextEntry value={user.apiToken} onChangeText={t => setUser({...user, apiToken: t})} onEndEditing={() => AsyncStorage.setItem('fa_user', JSON.stringify(user))} /></View>
        
