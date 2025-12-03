@@ -477,7 +477,9 @@ export default function App() {
     for (let d = 1; d <= daysInMonth; d++) {
       const dateStr = getLocalYYYYMMDD(new Date(year, month, d));
       const isSelected = dateStr === selectedDate;
-      const hasEntry = history.some(h => h.date === dateStr && h.nick === user.nick);
+      
+      const hasMyEntry = history.some(h => h.date === dateStr && h.nick === user.nick);
+      const hasPartnerEntry = user.partnerNick && history.some(h => h.date === dateStr && h.nick === user.partnerNick);
       
       days.push(
         <TouchableOpacity 
@@ -485,8 +487,7 @@ export default function App() {
           style={[
             styles.dayBtn, 
             { margin: 2 },
-            isSelected && styles.dayBtnActive, 
-            hasEntry && !isSelected && {borderColor: COLORS.emerald500, borderWidth: 1}
+            isSelected && styles.dayBtnActive
           ]} 
           onPress={() => {
             setSelectedDate(dateStr);
@@ -495,7 +496,11 @@ export default function App() {
             setIsCalendarOpen(false);
           }}
         >
-          <Text style={[styles.dayBtnText, isSelected && styles.dayBtnTextActive, hasEntry && !isSelected && {color: COLORS.emerald600}]}>{d}</Text>
+          <Text style={[styles.dayBtnText, isSelected && styles.dayBtnTextActive]}>{d}</Text>
+          <View style={{flexDirection: 'row', gap: 2, position: 'absolute', bottom: 4}}>
+            {hasMyEntry && <View style={{width: 4, height: 4, borderRadius: 2, backgroundColor: isSelected ? COLORS.emerald400 : COLORS.emerald500}} />}
+            {hasPartnerEntry && <View style={{width: 4, height: 4, borderRadius: 2, backgroundColor: isSelected ? COLORS.amber400 : COLORS.amber500}} />}
+          </View>
         </TouchableOpacity>
       );
     }
