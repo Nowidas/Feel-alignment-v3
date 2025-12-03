@@ -32,6 +32,16 @@ Notifications.setNotificationHandler({
   }),
 });
 
+// Create a channel for Android (required for notifications to work properly)
+if (Platform.OS === 'android') {
+  Notifications.setNotificationChannelAsync('daily-reminder', {
+    name: 'Daily Reminder',
+    importance: Notifications.AndroidImportance.HIGH,
+    sound: 'default',
+    vibrationPattern: [0, 250, 250, 250],
+  });
+}
+
 export default function App() {
   // --- STATE ---
   const [view, setView] = useState('loading'); 
@@ -112,36 +122,28 @@ export default function App() {
   };
 
   // --- NOTIFICATIONS LOGIC ---
-  const scheduleNotification = async (timeStr, showFeedback = true) => {
+  const scheduleNotification = async (timeStr, isUserAction = true) => {
     try {
       const { status } = await Notifications.requestPermissionsAsync();
       
       if (status !== 'granted') {
-        if (showFeedback) Alert.alert("Brak uprawnień", "Powiadomienia nie są włączone w ustawieniach systemu.");
+        if (isUserAction) Alert.alert("Brak uprawnień", "Powiadomienia nie są włączone w ustawieniach systemu.");
         return;
       }
 
       const [hours, minutes] = timeStr.split(':').map(Number);
+      if (isNaN(hours) || isNaN(minutes)) return;
 
-      // Check if already scheduled for the same time to avoid re-scheduling on every app launch
-      const scheduled = await Notifications.getAllScheduledNotificationsAsync();
-      const isAlreadyScheduled = scheduled.some(n => {
-        const t = n.trigger;
-        // Check if it's a calendar trigger with matching hour/minute
-        return (
-          (t.type === 'calendar' || t.type === 'daily') && 
-          t.hour === hours && 
-          t.minute === minutes
-        );
-      });
-
-      if (isAlreadyScheduled && !showFeedback) {
-        // If called from loadData (showFeedback=false) and already set, do nothing
-        return;
+      // If this is NOT a user action (e.g. app start), check if we already have ANY scheduled notification.
+      // If we do, we assume it's correct and don't touch it to avoid "notification on launch" spam.
+      if (!isUserAction) {
+        const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+        if (scheduled.length > 0) {
+          return;
+        }
       }
 
-      // If we are here, it means either it's not scheduled, OR user manually changed time (showFeedback=true)
-      // In both cases, we want to ensure clean state.
+      // If user changed time OR nothing is scheduled, we reset.
       await Notifications.cancelAllScheduledNotificationsAsync();
 
       await Notifications.scheduleNotificationAsync({
@@ -154,13 +156,14 @@ export default function App() {
           hour: hours,
           minute: minutes,
           repeats: true,
+          channelId: 'daily-reminder',
         },
       });
 
-      if (showFeedback) Alert.alert("Ustawiono", `Przypomnienie o ${timeStr}`);
+      if (isUserAction) Alert.alert("Ustawiono", `Przypomnienie o ${timeStr}`);
     } catch (error) {
       console.log("Notification Warning (Expo Go):", error);
-      if (showFeedback) Alert.alert("Info", "Ustawiono czas. W wersji deweloperskiej powiadomienia mogą nie przychodzić.");
+      if (isUserAction) Alert.alert("Info", "Ustawiono czas. W wersji deweloperskiej powiadomienia mogą nie przychodzić.");
     }
   };
 
