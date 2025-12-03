@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   View, Text, TouchableOpacity, ScrollView, 
   Alert, StatusBar, StyleSheet, Platform, ActivityIndicator,
-  KeyboardAvoidingView
+  KeyboardAvoidingView, Keyboard
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'; 
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -47,7 +47,24 @@ export default function App() {
   const [toast, setToast] = useState(null);
   
   const [isSyncing, setIsSyncing] = useState(false);
+  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
   const scrollViewRef = useRef(null);
+
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener(
+      'keyboardDidShow',
+      () => setKeyboardVisible(true)
+    );
+    const keyboardDidHideListener = Keyboard.addListener(
+      'keyboardDidHide',
+      () => setKeyboardVisible(false)
+    );
+
+    return () => {
+      keyboardDidHideListener.remove();
+      keyboardDidShowListener.remove();
+    };
+  }, []);
 
   const showToast = (msg, type = 'success') => {
     setToast({ msg, type, id: Date.now() });
@@ -70,10 +87,7 @@ export default function App() {
       
       if (savedHabits) setUserHabits(JSON.parse(savedHabits));
       else {
-        const defaults = [
-          { id: 'h1', name: 'Woda', icon: 'droplet', frequency: [0,1,2,3,4,5,6], mandatory: true, created: getInitialDate() },
-          { id: 'h2', name: 'Sen 8h', icon: 'moon', frequency: [0,1,2,3,4,5,6], mandatory: true, created: getInitialDate() }
-        ];
+        const defaults = [];
         setUserHabits(defaults);
         await AsyncStorage.setItem('fa_habits', JSON.stringify(defaults));
       }
@@ -274,9 +288,8 @@ export default function App() {
       </View>
 
       <KeyboardAvoidingView 
-        behavior={Platform.OS === "ios" ? "padding" : undefined} 
-        style={{ flex: 1 }} 
-        keyboardVerticalOffset={Platform.OS === "ios" ? 64 : 0}
+        behavior={Platform.OS === "ios" ? "height" : undefined} 
+        style={{ flex: 1 }}
       >
         <ScrollView 
           style={styles.scrollContent} 
@@ -330,6 +343,7 @@ export default function App() {
         </ScrollView>
       </KeyboardAvoidingView>
 
+      {!isKeyboardVisible && (
       <View style={styles.navBar}>
         <TouchableOpacity style={styles.navBtn} onPress={() => setView('daily')}>
           <BookHeart size={24} color={view==='daily'?COLORS.white:COLORS.stone400}/>
@@ -348,6 +362,7 @@ export default function App() {
           <Text style={[styles.navText, view==='settings'&&styles.navTextActive]}>Opcje</Text>
         </TouchableOpacity>
       </View>
+      )}
       <Toast message={toast?.msg} type={toast?.type} onHide={() => setToast(null)} />
     </SafeAreaView>
     </SafeAreaProvider>
@@ -355,8 +370,8 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.bg, paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0 },
-  header: { paddingHorizontal: 20, paddingVertical: 15, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: COLORS.bg },
+  container: { flex: 1, backgroundColor: COLORS.bg },
+  header: { paddingHorizontal: 20, paddingVertical: 5, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: COLORS.bg },
   headerTitle: { fontSize: 20, fontWeight: '800', color: COLORS.stone800, letterSpacing: -0.5 },
   headerSubtitle: { fontSize: 10, textTransform: 'uppercase', letterSpacing: 1, color: COLORS.stone400, fontWeight: '700' },
   avatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: COLORS.stone200, justifyContent: 'center', alignItems: 'center', shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 },
