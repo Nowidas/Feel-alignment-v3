@@ -459,6 +459,72 @@ export default function App() {
     ]);
   };
 
+  const renderCalendar = () => {
+    const year = calendarViewDate.getFullYear();
+    const month = calendarViewDate.getMonth();
+    
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    
+    const daysInMonth = lastDay.getDate();
+    const startDayOfWeek = firstDay.getDay(); // 0 = Sunday
+    
+    const days = [];
+    for (let i = 0; i < startDayOfWeek; i++) {
+      days.push(<View key={`empty-${i}`} style={{width: 32, height: 32, margin: 2}} />);
+    }
+    
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dateStr = getLocalYYYYMMDD(new Date(year, month, d));
+      const isSelected = dateStr === selectedDate;
+      const hasEntry = history.some(h => h.date === dateStr && h.nick === user.nick);
+      
+      days.push(
+        <TouchableOpacity 
+          key={d} 
+          style={[
+            styles.dayBtn, 
+            { margin: 2 },
+            isSelected && styles.dayBtnActive, 
+            hasEntry && !isSelected && {borderColor: COLORS.emerald500, borderWidth: 1}
+          ]} 
+          onPress={() => {
+            setSelectedDate(dateStr);
+            setDailyEntry({mood: 5, text: '', habits: []});
+            setEditingId(null);
+            setIsCalendarOpen(false);
+          }}
+        >
+          <Text style={[styles.dayBtnText, isSelected && styles.dayBtnTextActive, hasEntry && !isSelected && {color: COLORS.emerald600}]}>{d}</Text>
+        </TouchableOpacity>
+      );
+    }
+
+    return (
+      <View style={styles.calendarOverlay}>
+        <View style={styles.calendarHeader}>
+          <TouchableOpacity onPress={() => setCalendarViewDate(new Date(year, month - 1, 1))}>
+            <ChevronLeft size={24} color={COLORS.stone800} />
+          </TouchableOpacity>
+          <Text style={{fontWeight: 'bold', fontSize: 16, color: COLORS.stone800, textTransform: 'capitalize'}}>
+            {firstDay.toLocaleString('pl-PL', { month: 'long', year: 'numeric' })}
+          </Text>
+          <TouchableOpacity onPress={() => setCalendarViewDate(new Date(year, month + 1, 1))}>
+            <ChevronRight size={24} color={COLORS.stone800} />
+          </TouchableOpacity>
+        </View>
+        <View style={{flexDirection: 'row', justifyContent: 'space-around', marginBottom: 8}}>
+          {DAYS_MAP.map(d => <Text key={d} style={{width: 32, textAlign: 'center', fontSize: 10, fontWeight: 'bold', color: COLORS.stone400}}>{d}</Text>)}
+        </View>
+        <View style={styles.calendarGrid}>
+          {days}
+        </View>
+        <TouchableOpacity style={{alignItems: 'center', marginTop: 10}} onPress={() => setIsCalendarOpen(false)}>
+            <Text style={{color: COLORS.stone500, fontSize: 12, fontWeight: 'bold'}}>Zamknij</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  };
   // --- RENDER HELPERS ---
   const getMoodColor = (val) => {
     if (val <= 3) return COLORS.rose500;
@@ -523,9 +589,28 @@ export default function App() {
           {view === 'daily' && (
             <View>
               <View style={styles.dateStrip}>
-                <TouchableOpacity style={[styles.dateBtn, selectedDate === getLocalYYYYMMDD(new Date()) && styles.dateBtnActive]} onPress={() => {setSelectedDate(getLocalYYYYMMDD(new Date())); setDailyEntry({mood:5,text:'',habits:[]}); setEditingId(null);}}><Text style={[styles.dateBtnText, selectedDate === getLocalYYYYMMDD(new Date()) && styles.dateBtnTextActive]}>Dziś</Text></TouchableOpacity>
-                <TouchableOpacity style={[styles.dateBtn, selectedDate !== getLocalYYYYMMDD(new Date()) && styles.dateBtnActive]} onPress={() => {const y = new Date(); y.setDate(y.getDate()-1); setSelectedDate(getLocalYYYYMMDD(y)); setDailyEntry({mood:5,text:'',habits:[]}); setEditingId(null);}}><Text style={[styles.dateBtnText, selectedDate !== getLocalYYYYMMDD(new Date()) && styles.dateBtnTextActive]}>Wczoraj</Text></TouchableOpacity>
-                <TouchableOpacity style={styles.dateBtn} onPress={() => setIsCalendarOpen(!isCalendarOpen)}><CalendarIcon size={16} color={COLORS.stone500} /></TouchableOpacity>
+                {(() => {
+                  const todayStr = getLocalYYYYMMDD(new Date());
+                  const y = new Date(); y.setDate(y.getDate()-1);
+                  const yesterdayStr = getLocalYYYYMMDD(y);
+                  const isToday = selectedDate === todayStr;
+                  const isYesterday = selectedDate === yesterdayStr;
+                  const isOther = !isToday && !isYesterday;
+
+                  return (
+                    <>
+                      <TouchableOpacity style={[styles.dateBtn, isToday && styles.dateBtnActive]} onPress={() => {setSelectedDate(todayStr); setDailyEntry({mood:5,text:'',habits:[]}); setEditingId(null);}}>
+                        <Text style={[styles.dateBtnText, isToday && styles.dateBtnTextActive]}>Dziś</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity style={[styles.dateBtn, isYesterday && styles.dateBtnActive]} onPress={() => {setSelectedDate(yesterdayStr); setDailyEntry({mood:5,text:'',habits:[]}); setEditingId(null);}}>
+                        <Text style={[styles.dateBtnText, isYesterday && styles.dateBtnTextActive]}>Wczoraj</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity style={[styles.dateBtn, isOther && styles.dateBtnActive]} onPress={() => setIsCalendarOpen(!isCalendarOpen)}>
+                        <CalendarIcon size={16} color={isOther ? COLORS.white : COLORS.stone500} />
+                      </TouchableOpacity>
+                    </>
+                  );
+                })()}
               </View>
               {isCalendarOpen && renderCalendar()}
               <Text style={styles.currentDateLabel}>{formatDateLabel(selectedDate)}</Text>
