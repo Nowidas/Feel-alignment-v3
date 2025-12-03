@@ -36,7 +36,7 @@ export default function App() {
   // --- STATE ---
   const [view, setView] = useState('loading'); 
   const [user, setUser] = useState({ 
-    nick: '', partnerNick: '', notificationTime: '20:00', apiEndpoint: '', apiToken: '', dayCutoffHour: 4 
+    nick: '', partnerNick: '', notificationTime: '23:00', apiEndpoint: '', apiToken: '', dayCutoffHour: 4 
   });
   
   const [selectedDate, setSelectedDate] = useState(getInitialDate());
@@ -101,6 +101,7 @@ export default function App() {
         setSelectedDate(getInitialDate(u.dayCutoffHour));
         setView('daily');
         if (u.apiEndpoint) syncWithCloud(u, false); 
+        scheduleNotification(u.notificationTime || '23:00', false);
       } else {
         setView('onboarding');
       }
@@ -111,12 +112,12 @@ export default function App() {
   };
 
   // --- NOTIFICATIONS LOGIC ---
-  const scheduleNotification = async (timeStr) => {
+  const scheduleNotification = async (timeStr, showFeedback = true) => {
     try {
       const { status } = await Notifications.requestPermissionsAsync();
       
       if (status !== 'granted') {
-        Alert.alert("Brak uprawnień", "Powiadomienia nie są włączone w ustawieniach systemu.");
+        if (showFeedback) Alert.alert("Brak uprawnień", "Powiadomienia nie są włączone w ustawieniach systemu.");
         return;
       }
 
@@ -137,10 +138,10 @@ export default function App() {
         },
       });
 
-      Alert.alert("Ustawiono", `Przypomnienie o ${timeStr}`);
+      if (showFeedback) Alert.alert("Ustawiono", `Przypomnienie o ${timeStr}`);
     } catch (error) {
       console.log("Notification Warning (Expo Go):", error);
-      Alert.alert("Info", "Ustawiono czas. W wersji deweloperskiej powiadomienia mogą nie przychodzić.");
+      if (showFeedback) Alert.alert("Info", "Ustawiono czas. W wersji deweloperskiej powiadomienia mogą nie przychodzić.");
     }
   };
 
@@ -264,7 +265,10 @@ export default function App() {
       <OnboardingScreen 
         user={user} 
         setUser={setUser} 
-        onComplete={() => setView('daily')} 
+        onComplete={() => {
+          setView('daily');
+          scheduleNotification(user.notificationTime || '23:00', false);
+        }} 
       />
     );
   }
