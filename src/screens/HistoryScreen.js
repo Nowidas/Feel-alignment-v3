@@ -1,19 +1,25 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, Platform } from 'react-native';
 import { Edit2, Trash2, Check, X } from 'lucide-react-native';
 import { COLORS, ICON_MAP } from '../constants/theme';
 import { formatDateLabel, getMoodColor, isHabitActiveForDate, getVirtualMissingEntries } from '../utils/helpers';
 
 const HistoryScreen = ({ history, user, userHabits, onEdit, onDelete }) => {
   const confirmDelete = (id) => {
-    // We need to pass this up or handle alert here. 
-    // Since Alert is UI, we can do it here but the actual delete logic is passed down.
-    // But wait, Alert.alert with callback is tricky if logic is in parent.
-    // Let's assume onDelete handles the confirmation or we do it here.
-    // The original code had confirmDelete in App.js.
-    // Let's just call onDelete(id) and let parent handle confirmation or do it here.
-    // Better to do it here to keep UI logic together.
-    onDelete(id);
+    if (Platform.OS === 'web') {
+      if (confirm("Czy na pewno chcesz usunąć ten wpis?")) {
+        onDelete(id);
+      }
+    } else {
+      Alert.alert(
+        "Usuń wpis",
+        "Czy na pewno chcesz usunąć ten wpis?",
+        [
+          { text: "Anuluj", style: "cancel" },
+          { text: "Usuń", style: "destructive", onPress: () => onDelete(id) }
+        ]
+      );
+    }
   };
 
   return (

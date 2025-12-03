@@ -15,16 +15,38 @@ const OnboardingScreen = ({ user, setUser, onComplete }) => {
   };
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
+    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1, backgroundColor: COLORS.bg }}>
       <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 20 }}>
         <View style={styles.centerContent}>
           <View style={styles.logoContainer}><ShieldCheck size={40} color={COLORS.stone700} /></View>
           <Text style={styles.title}>FeelingAlignment</Text>
           <View style={styles.form}>
-            <TextInput style={styles.input} placeholder="Twój Nick" onChangeText={t => setUser({...user, nick: t})}/>
-            <TextInput style={styles.input} placeholder="Nick Partnera" onChangeText={t => setUser({...user, partnerNick: t})}/>
-            <TextInput style={styles.input} placeholder="API Endpoint URL" onChangeText={t => setUser({...user, apiEndpoint: t})} autoCapitalize="none"/>
-            <TextInput style={styles.input} placeholder="Secret Token" onChangeText={t => setUser({...user, apiToken: t})} secureTextEntry/>
+            <TextInput 
+              style={styles.input} 
+              placeholder="Twój Nick" 
+              placeholderTextColor={COLORS.stone400}
+              onChangeText={t => setUser({...user, nick: t})}
+            />
+            <TextInput 
+              style={styles.input} 
+              placeholder="Nick Partnera" 
+              placeholderTextColor={COLORS.stone400}
+              onChangeText={t => setUser({...user, partnerNick: t})}
+            />
+            <TextInput 
+              style={styles.input} 
+              placeholder="API Endpoint URL" 
+              placeholderTextColor={COLORS.stone400}
+              onChangeText={t => setUser({...user, apiEndpoint: t})} 
+              autoCapitalize="none"
+            />
+            <TextInput 
+              style={styles.input} 
+              placeholder="Secret Token" 
+              placeholderTextColor={COLORS.stone400}
+              onChangeText={t => setUser({...user, apiToken: t})} 
+              secureTextEntry
+            />
             <TouchableOpacity style={styles.mainButton} onPress={handleStart}>
               <Text style={styles.mainButtonText}>Rozpocznij</Text>
             </TouchableOpacity>

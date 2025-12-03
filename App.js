@@ -40,7 +40,7 @@ export default function App() {
   });
   
   const [selectedDate, setSelectedDate] = useState(getInitialDate());
-  const [dailyEntry, setDailyEntry] = useState({ mood: 5, text: '', habits: [] }); 
+  const [dailyEntry, setDailyEntry] = useState({ mood: 3, text: '', habits: [] }); 
   const [editingId, setEditingId] = useState(null);
   const [history, setHistory] = useState([]);
   const [userHabits, setUserHabits] = useState([]);
@@ -127,7 +127,7 @@ export default function App() {
       await Notifications.scheduleNotificationAsync({
         content: {
           title: "FeelingAlignment 📝",
-          body: "Czas na chwilę refleksji. Jak Ci minął dzień?",
+          body: "Plss tell me about your day 👉👈",
           sound: true,
         },
         trigger: {

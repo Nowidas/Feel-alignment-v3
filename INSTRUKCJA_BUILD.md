@@ -8,21 +8,31 @@ Możesz to zrobić na Windowsie lub Macu. Nie potrzebujesz płatnego konta Googl
     ```bash
     eas login
     ```
-3.  Uruchom budowanie w chmurze:
+3.  Zapisz zmiany w gicie (zalecane):
+    ```bash
+    git add .
+    git commit -m "Wersja gotowa do budowania"
+    ```
+4.  Uruchom budowanie w chmurze:
     ```bash
     eas build --platform android --profile preview
     ```
-4.  Gdy proces się zakończy, otrzymasz link do pobrania pliku `.apk`.
-5.  Pobierz plik na telefon i zainstaluj go.
+5.  Gdy proces się zakończy, otrzymasz link do pobrania pliku `.apk`.
+6.  Pobierz plik na telefon i zainstaluj go.
 
 ### Aktualizacja aplikacji (Android)
 Jeśli wprowadzisz zmiany w kodzie i chcesz wygenerować nową wersję:
 1.  (Opcjonalnie) Zmień numer wersji w `app.json` (np. `version: "1.0.1"`), aby wiedzieć, że to nowa wersja.
-2.  Uruchom ponownie tę samą komendę:
+2.  Zapisz zmiany:
+    ```bash
+    git add .
+    git commit -m "Aktualizacja wersji"
+    ```
+3.  Uruchom ponownie tę samą komendę:
     ```bash
     eas build --platform android --profile preview
     ```
-3.  Pobierz i zainstaluj nowy plik `.apk` (nadpisze starą wersję na telefonie).
+4.  Pobierz i zainstaluj nowy plik `.apk` (nadpisze starą wersję na telefonie).
 
 ---
 

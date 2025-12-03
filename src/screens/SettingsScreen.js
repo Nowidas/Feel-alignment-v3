@@ -29,7 +29,7 @@ const SettingsScreen = ({ user, setUser, userHabits, setUserHabits, syncWithClou
       const newUser = {...user, notificationTime: newTime};
       setUser(newUser);
       AsyncStorage.setItem('fa_user', JSON.stringify(newUser));
-      // scheduleNotification(newTime); // Logic for scheduling is in App.js or should be moved to utils
+      scheduleNotification(newTime); 
     }
   };
 
@@ -127,7 +127,13 @@ const SettingsScreen = ({ user, setUser, userHabits, setUserHabits, syncWithClou
          <Text style={styles.sectionTitle}>Zarządzanie Nawykami</Text>
          <View style={styles.addHabitForm}><Text style={styles.subLabel}>Dodaj nowy</Text>
          <View style={styles.iconRow}><ScrollView horizontal showsHorizontalScrollIndicator={false}>{Object.keys(ICON_MAP).filter(k=>k!=='check').map(key => { const Icon = ICON_MAP[key]; return ( <TouchableOpacity key={key} onPress={() => setNewHabitIcon(key)} style={[styles.iconBtn, newHabitIcon === key && styles.iconBtnActive]}><Icon size={16} color={newHabitIcon === key ? COLORS.white : COLORS.stone400} /></TouchableOpacity> ) })}</ScrollView></View>
-         <TextInput style={[styles.input, {marginBottom:10}]} placeholder="Nazwa nawyku" value={newHabitName} onChangeText={setNewHabitName} />
+         <TextInput 
+            style={[styles.input, {marginBottom:10}]} 
+            placeholder="Nazwa nawyku" 
+            placeholderTextColor={COLORS.stone400}
+            value={newHabitName} 
+            onChangeText={setNewHabitName} 
+         />
          <View style={styles.settingRow}><Text style={styles.smallLabel}>Obowiązkowy?</Text><TouchableOpacity onPress={() => setNewHabitMandatory(!newHabitMandatory)}><View style={[styles.toggle, newHabitMandatory && styles.toggleActive]}><View style={[styles.toggleKnob, newHabitMandatory && styles.toggleKnobActive]}/></View></TouchableOpacity></View>
          <View style={{marginBottom: 10}}><Text style={styles.smallLabel}>Dni:</Text><View style={{flexDirection:'row', justifyContent:'space-between', marginTop: 5}}>{DAYS_MAP.map((d, i) => ( <TouchableOpacity key={i} onPress={() => toggleNewHabitDay(i)} style={[styles.dayBtn, newHabitFrequency.includes(i) && styles.dayBtnActive]}><Text style={[styles.dayBtnText, newHabitFrequency.includes(i) && styles.dayBtnTextActive]}>{d}</Text></TouchableOpacity> ))}</View></View>
          <TouchableOpacity style={styles.mainButton} onPress={handleAddHabit}><Text style={styles.mainButtonText}>Dodaj</Text></TouchableOpacity></View>
