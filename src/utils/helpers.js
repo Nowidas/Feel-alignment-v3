@@ -35,6 +35,9 @@ export const formatDateLabel = (dateStr) => {
 
 export const isHabitActiveForDate = (habit, dateStr) => {
   if (habit.created && dateStr < habit.created) return false;
+  if (habit.archivedAt && dateStr >= habit.archivedAt) return false;
+  if (habit.archived && !habit.archivedAt) return false; // Fallback for old archived habits
+  
   if (!habit.frequency || habit.frequency.length === 0) return true; 
   const dayIndex = new Date(dateStr).getDay();
   return habit.frequency.includes(dayIndex);

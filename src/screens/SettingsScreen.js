@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert, Platform } from 'react-native';
 import { RefreshCw, Trash2 } from 'lucide-react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS, ICON_MAP, DAYS_MAP } from '../constants/theme';
+import { getLocalYYYYMMDD } from '../utils/helpers';
 
 const SettingsScreen = ({ user, setUser, userHabits, setUserHabits, syncWithCloud, isSyncing }) => {
   const [newHabitName, setNewHabitName] = useState('');
@@ -60,14 +61,23 @@ const SettingsScreen = ({ user, setUser, userHabits, setUserHabits, syncWithClou
   };
 
   const handleDeleteHabit = async (id) => {
-    Alert.alert("Usuń nawyk", "Czy na pewno chcesz usunąć ten nawyk z konfiguracji? Historia pozostanie zachowana.", [
-      { text: "Anuluj" },
-      { text: "Usuń", style: "destructive", onPress: async () => {
-          const updatedHabits = userHabits.filter(h => h.id !== id);
-          setUserHabits(updatedHabits);
-          await AsyncStorage.setItem('fa_habits', JSON.stringify(updatedHabits));
-      }}
-    ]);
+    if (Platform.OS === 'web') {
+      if (confirm("Czy na pewno chcesz usunąć ten nawyk? Nie będzie on już sugerowany do zaznaczenia, ale historia wykonanych nawyków pozostanie.")) {
+        const updatedHabits = userHabits.map(h => h.id === id ? { ...h, archived: true, archivedAt: getLocalYYYYMMDD(new Date()) } : h);
+        setUserHabits(updatedHabits);
+        await AsyncStorage.setItem('fa_habits', JSON.stringify(updatedHabits));
+      }
+    } else {
+      Alert.alert("Usuń nawyk", "Czy na pewno chcesz usunąć ten nawyk? Nie będzie on już sugerowany do zaznaczenia, ale historia wykonanych nawyków pozostanie.", [
+        { text: "Anuluj" },
+        { text: "Usuń", style: "destructive", onPress: async () => {
+            // Soft delete: mark as archived instead of removing
+            const updatedHabits = userHabits.map(h => h.id === id ? { ...h, archived: true, archivedAt: getLocalYYYYMMDD(new Date()) } : h);
+            setUserHabits(updatedHabits);
+            await AsyncStorage.setItem('fa_habits', JSON.stringify(updatedHabits));
+        }}
+      ]);
+    }
   };
 
   return (
@@ -121,7 +131,7 @@ const SettingsScreen = ({ user, setUser, userHabits, setUserHabits, syncWithClou
          <View style={styles.settingRow}><Text style={styles.smallLabel}>Obowiązkowy?</Text><TouchableOpacity onPress={() => setNewHabitMandatory(!newHabitMandatory)}><View style={[styles.toggle, newHabitMandatory && styles.toggleActive]}><View style={[styles.toggleKnob, newHabitMandatory && styles.toggleKnobActive]}/></View></TouchableOpacity></View>
          <View style={{marginBottom: 10}}><Text style={styles.smallLabel}>Dni:</Text><View style={{flexDirection:'row', justifyContent:'space-between', marginTop: 5}}>{DAYS_MAP.map((d, i) => ( <TouchableOpacity key={i} onPress={() => toggleNewHabitDay(i)} style={[styles.dayBtn, newHabitFrequency.includes(i) && styles.dayBtnActive]}><Text style={[styles.dayBtnText, newHabitFrequency.includes(i) && styles.dayBtnTextActive]}>{d}</Text></TouchableOpacity> ))}</View></View>
          <TouchableOpacity style={styles.mainButton} onPress={handleAddHabit}><Text style={styles.mainButtonText}>Dodaj</Text></TouchableOpacity></View>
-         {userHabits.map(h => (<View key={h.id} style={styles.habitRow}><Text style={{fontWeight:'bold', color:COLORS.stone600}}>{h.name}</Text><TouchableOpacity onPress={()=>handleDeleteHabit(h.id)}><Trash2 size={16} color={COLORS.stone300}/></TouchableOpacity></View>))}
+         {userHabits.filter(h => !h.archived).map(h => (<View key={h.id} style={styles.habitRow}><Text style={{fontWeight:'bold', color:COLORS.stone600}}>{h.name}</Text><TouchableOpacity onPress={()=>handleDeleteHabit(h.id)}><Trash2 size={16} color={COLORS.stone300}/></TouchableOpacity></View>))}
        </View>
     </View>
   );
