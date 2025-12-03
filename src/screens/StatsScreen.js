@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Flame, Activity, BookOpen, Users } from 'lucide-react-native';
-import { COLORS, DAYS_MAP } from '../constants/theme';
+import { COLORS } from '../constants/theme';
 import { getLocalYYYYMMDD, getMoodColor } from '../utils/helpers';
 
 const StatsScreen = ({ history, user, userHabits }) => {
@@ -87,14 +87,14 @@ const StatsScreen = ({ history, user, userHabits }) => {
       if (currentCalcStreak > partnerMaxStreak) partnerMaxStreak = currentCalcStreak;
   }
 
-  // 2. Mood Chart (Last 7 days)
-  const last7Days = [];
-  for (let i = 6; i >= 0; i--) {
+  // 2. Mood Heatmap (Last 30 days)
+  const last30Days = [];
+  for (let i = 29; i >= 0; i--) {
       const d = new Date();
       d.setDate(d.getDate() - i);
       const dateStr = getLocalYYYYMMDD(d);
       const entry = myEntries.find(e => e.date === dateStr);
-      last7Days.push({ date: dateStr, mood: entry ? entry.mood : 0, dayName: DAYS_MAP[d.getDay()] });
+      last30Days.push({ date: dateStr, mood: entry ? entry.mood : 0 });
   }
 
   // 3. Habits (Last 30 days)
@@ -186,25 +186,21 @@ const StatsScreen = ({ history, user, userHabits }) => {
              ) : null}
           </View>
 
-          {/* Mood Chart */}
+          {/* Mood Heatmap */}
           <View style={styles.card}>
-              <Text style={styles.sectionTitle}>Nastrój (7 dni)</Text>
-              <View style={{flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', height: 120, paddingTop: 20}}>
-                  {last7Days.map((d, i) => (
-                      <View key={i} style={{alignItems: 'center', gap: 6, flex: 1}}>
-                          {d.mood > 0 ? (
-                              <View style={{
-                                  width: 12, 
-                                  height: `${d.mood * 10}%`, 
-                                  backgroundColor: getMoodColor(d.mood), 
-                                  borderRadius: 6,
-                                  minHeight: 12
-                              }} />
-                          ) : (
-                              <View style={{width: 12, height: 4, backgroundColor: COLORS.stone200, borderRadius: 2}} />
-                          )}
-                          <Text style={{fontSize: 10, color: COLORS.stone400, fontWeight: 'bold'}}>{d.dayName}</Text>
-                      </View>
+              <Text style={styles.sectionTitle}>Nastrój (30 dni)</Text>
+              <View style={{flexDirection: 'row', flexWrap: 'wrap', gap: 4, justifyContent: 'center'}}>
+                  {last30Days.map((d, i) => (
+                      <View 
+                        key={i} 
+                        style={{
+                            width: 24, 
+                            height: 24, 
+                            borderRadius: 4, 
+                            backgroundColor: d.mood > 0 ? getMoodColor(d.mood) : COLORS.stone100,
+                            opacity: d.mood > 0 ? 1 : 0.5
+                        }} 
+                      />
                   ))}
               </View>
           </View>
