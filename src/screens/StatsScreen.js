@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Flame } from 'lucide-react-native';
+import { Flame, Activity, BookOpen, Users } from 'lucide-react-native';
 import { COLORS, DAYS_MAP } from '../constants/theme';
 import { getLocalYYYYMMDD, getMoodColor } from '../utils/helpers';
 
@@ -12,8 +12,6 @@ const StatsScreen = ({ history, user, userHabits }) => {
   const yesterday = getLocalYYYYMMDD(new Date(new Date().setDate(new Date().getDate() - 1)));
   
   // Check if we have entry for today or yesterday to start streak
-  let currentDate = myEntries.length > 0 && myEntries[0].date === today ? today : yesterday;
-  
   if (myEntries.length > 0) {
       const lastEntryDate = myEntries[0].date;
       if (lastEntryDate === today || lastEntryDate === yesterday) {
@@ -26,11 +24,67 @@ const StatsScreen = ({ history, user, userHabits }) => {
                    streak++;
                    checkDate.setDate(checkDate.getDate() - 1);
                } else {
-                   // If gap is bigger than 1 day, break
                    if (new Date(entryDate) < new Date(expectedDate)) break;
                }
            }
       }
+  }
+
+  // Max Streak Calculation
+  let maxStreak = 0;
+  if (myEntries.length > 0) {
+      let currentCalcStreak = 1;
+      maxStreak = 1;
+      for (let i = 0; i < myEntries.length - 1; i++) {
+          const curr = new Date(myEntries[i].date);
+          const next = new Date(myEntries[i+1].date);
+          const diffTime = Math.abs(curr - next);
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+          
+          if (diffDays === 0) continue;
+
+          if (diffDays === 1) {
+              currentCalcStreak++;
+          } else {
+              if (currentCalcStreak > maxStreak) maxStreak = currentCalcStreak;
+              currentCalcStreak = 1;
+          }
+      }
+      if (currentCalcStreak > maxStreak) maxStreak = currentCalcStreak;
+  }
+
+  // Average Mood
+  const avgMood = myEntries.length > 0 
+    ? (myEntries.reduce((acc, curr) => acc + curr.mood, 0) / myEntries.length).toFixed(1) 
+    : 0;
+
+  // Partner Entries
+  const partnerEntries = user.partnerNick 
+    ? history.filter(h => h.nick === user.partnerNick).sort((a, b) => new Date(b.date) - new Date(a.date))
+    : [];
+  const partnerEntriesCount = partnerEntries.length;
+
+  // Partner Max Streak
+  let partnerMaxStreak = 0;
+  if (partnerEntries.length > 0) {
+      let currentCalcStreak = 1;
+      partnerMaxStreak = 1;
+      for (let i = 0; i < partnerEntries.length - 1; i++) {
+          const curr = new Date(partnerEntries[i].date);
+          const next = new Date(partnerEntries[i+1].date);
+          const diffTime = Math.abs(curr - next);
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+          
+          if (diffDays === 0) continue;
+
+          if (diffDays === 1) {
+              currentCalcStreak++;
+          } else {
+              if (currentCalcStreak > partnerMaxStreak) partnerMaxStreak = currentCalcStreak;
+              currentCalcStreak = 1;
+          }
+      }
+      if (currentCalcStreak > partnerMaxStreak) partnerMaxStreak = currentCalcStreak;
   }
 
   // 2. Mood Chart (Last 7 days)
@@ -74,17 +128,62 @@ const StatsScreen = ({ history, user, userHabits }) => {
       <View>
           <Text style={styles.bigTitle}>Statystyki</Text>
           
-          {/* Streak Card */}
-          <View style={styles.card}>
-              <View style={{flexDirection: 'row', alignItems: 'center', gap: 12}}>
-                  <View style={[styles.iconBox, {backgroundColor: COLORS.amber100}]}>
-                      <Flame size={24} color={COLORS.amber500} fill={COLORS.amber500} />
-                  </View>
-                  <View>
-                      <Text style={styles.statLabel}>Twoja Passa</Text>
-                      <Text style={styles.statValue}>{streak} dni</Text>
-                  </View>
-              </View>
+          {/* Top Row: Streak & Avg Mood */}
+          <View style={{flexDirection: 'row', gap: 12, marginBottom: 12}}>
+            <View style={[styles.card, {flex: 1, marginBottom: 0, padding: 16}]}>
+                <View style={{flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8}}>
+                    <View style={[styles.iconBox, {backgroundColor: COLORS.amber100}]}>
+                        <Flame size={20} color={COLORS.amber500} fill={COLORS.amber500} />
+                    </View>
+                    <Text style={styles.statLabel}>Passa</Text>
+                </View>
+                <Text style={styles.statValue}>{streak} <Text style={{fontSize: 14, color: COLORS.stone400, fontWeight: '600'}}>dni</Text></Text>
+                <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 4}}>
+                    <Text style={styles.subStat}>Max: {maxStreak}</Text>
+                    {user.partnerNick ? (
+                        <View style={{alignItems: 'flex-end'}}>
+                            <View style={{flexDirection: 'row', alignItems: 'center', gap: 2}}>
+                                <Users size={10} color={COLORS.stone400} />
+                                <Text style={{fontSize: 9, color: COLORS.stone400, fontWeight: '600'}}>{user.partnerNick}</Text>
+                            </View>
+                            <Text style={{fontSize: 11, fontWeight: '600', color: COLORS.stone400}}>max: {partnerMaxStreak}</Text>
+                        </View>
+                    ) : null}
+                </View>
+            </View>
+
+            <View style={[styles.card, {flex: 1, marginBottom: 0, padding: 16}]}>
+                <View style={{flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8}}>
+                    <View style={[styles.iconBox, {backgroundColor: COLORS.emerald50}]}>
+                        <Activity size={20} color={COLORS.emerald500} />
+                    </View>
+                    <Text style={styles.statLabel}>Śr. Mood</Text>
+                </View>
+                <Text style={[styles.statValue, {color: getMoodColor(Math.round(avgMood))}]}>{avgMood}</Text>
+                <Text style={styles.subStat}>/ 10</Text>
+            </View>
+          </View>
+
+          {/* Total Entries Row */}
+          <View style={[styles.card, {flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}]}>
+             <View style={{flexDirection: 'row', alignItems: 'center', gap: 12}}>
+                <View style={[styles.iconBox, {backgroundColor: COLORS.stone100}]}>
+                    <BookOpen size={24} color={COLORS.stone600} />
+                </View>
+                <View>
+                    <Text style={styles.statLabel}>Wszystkie wpisy</Text>
+                    <Text style={styles.statValue}>{myEntries.length}</Text>
+                </View>
+             </View>
+             {user.partnerNick ? (
+                 <View style={{alignItems: 'flex-end'}}>
+                    <View style={{flexDirection: 'row', alignItems: 'center', gap: 4}}>
+                        <Users size={14} color={COLORS.stone400} />
+                        <Text style={styles.subStatLabel}>{user.partnerNick}</Text>
+                    </View>
+                    <Text style={{fontWeight: 'bold', color: COLORS.stone600}}>{partnerEntriesCount}</Text>
+                 </View>
+             ) : null}
           </View>
 
           {/* Mood Chart */}
@@ -136,6 +235,8 @@ const styles = StyleSheet.create({
   iconBox: { backgroundColor: COLORS.stone200, padding: 6, borderRadius: 8 },
   statLabel: { fontSize: 12, fontWeight: '700', color: COLORS.stone500, textTransform: 'uppercase', letterSpacing: 1 },
   statValue: { fontSize: 24, fontWeight: '800', color: COLORS.stone800 },
+  subStat: { fontSize: 11, fontWeight: '600', color: COLORS.stone400, marginTop: 4 },
+  subStatLabel: { fontSize: 10, fontWeight: '600', color: COLORS.stone400 },
   sectionTitle: { fontSize: 11, fontWeight: '800', color: COLORS.stone400, marginBottom: 12, letterSpacing: 1 },
   emptyText: { fontStyle: 'italic', color: COLORS.stone400, marginLeft: 10 }
 });
