@@ -123,6 +123,25 @@ export default function App() {
 
       const [hours, minutes] = timeStr.split(':').map(Number);
 
+      // Check if already scheduled for the same time to avoid re-scheduling on every app launch
+      const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+      const isAlreadyScheduled = scheduled.some(n => {
+        const t = n.trigger;
+        // Check if it's a calendar trigger with matching hour/minute
+        return (
+          (t.type === 'calendar' || t.type === 'daily') && 
+          t.hour === hours && 
+          t.minute === minutes
+        );
+      });
+
+      if (isAlreadyScheduled && !showFeedback) {
+        // If called from loadData (showFeedback=false) and already set, do nothing
+        return;
+      }
+
+      // If we are here, it means either it's not scheduled, OR user manually changed time (showFeedback=true)
+      // In both cases, we want to ensure clean state.
       await Notifications.cancelAllScheduledNotificationsAsync();
 
       await Notifications.scheduleNotificationAsync({
