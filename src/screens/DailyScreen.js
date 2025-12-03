@@ -134,6 +134,11 @@ const DailyScreen = ({
             <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
               <Text style={{fontWeight:'bold', fontSize: 14, color: COLORS.stone800}}>{e.nick}</Text>
               <View style={{flexDirection: 'row', gap: 4, flexWrap: 'wrap', justifyContent: 'flex-end', maxWidth: '70%'}}>
+                {e.mood > 0 && (
+                  <View style={{backgroundColor: getMoodColor(e.mood) + '20', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6}}>
+                    <Text style={{fontSize: 10, color: getMoodColor(e.mood), fontWeight: '700'}}>Mood: {e.mood}</Text>
+                  </View>
+                )}
                 {e.habits && e.habits.map((h, idx) => {
                   const habitName = typeof h === 'object' ? h.name : 'Nawyk';
                   return (
