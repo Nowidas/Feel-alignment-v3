@@ -127,7 +127,27 @@ const DailyScreen = ({
         <TextInput style={styles.textArea} multiline placeholder={currentPrompt} placeholderTextColor={COLORS.stone300} value={dailyEntry.text} onChangeText={t => setDailyEntry({...dailyEntry, text: t})}/>
         <TouchableOpacity style={styles.mainButton} onPress={onSave}><Send size={20} color="white" /><Text style={styles.mainButtonText}>{editingId ? 'Aktualizuj' : 'Zapisz'}</Text></TouchableOpacity>
       </View>
-      <View style={{marginTop: 20}}><Text style={styles.sectionTitle}>Tego dnia</Text>{history.filter(h => h.date === selectedDate).map((e,i) => (<View key={i} style={styles.historyItem}><Text style={{fontWeight:'bold'}}>{e.nick}</Text><Text style={{flex:1, marginLeft:10}}>{e.text}</Text></View>))}</View>
+      <View style={{marginTop: 20}}>
+        <Text style={styles.sectionTitle}>Tego dnia</Text>
+        {history.filter(h => h.date === selectedDate).map((e,i) => (
+          <View key={i} style={[styles.historyItem, {flexDirection: 'column', gap: 8}]}>
+            <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
+              <Text style={{fontWeight:'bold', fontSize: 14, color: COLORS.stone800}}>{e.nick}</Text>
+              <View style={{flexDirection: 'row', gap: 4, flexWrap: 'wrap', justifyContent: 'flex-end', maxWidth: '70%'}}>
+                {e.habits && e.habits.map((h, idx) => {
+                  const habitName = typeof h === 'object' ? h.name : 'Nawyk';
+                  return (
+                    <View key={idx} style={{backgroundColor: COLORS.emerald50, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, borderWidth: 1, borderColor: COLORS.emerald200}}>
+                      <Text style={{fontSize: 10, color: COLORS.emerald600, fontWeight: '700'}}>{habitName}</Text>
+                    </View>
+                  );
+                })}
+              </View>
+            </View>
+            {e.text ? <Text style={{fontSize: 13, color: COLORS.stone600, lineHeight: 18}}>{e.text}</Text> : null}
+          </View>
+        ))}
+      </View>
     </View>
   );
 };
