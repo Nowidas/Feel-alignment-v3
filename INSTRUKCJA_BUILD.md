@@ -1,5 +1,7 @@
 # Instrukcja generowania aplikacji (Android & iOS)
 
+**Repozytorium:** [Feel-alignment-v3](https://github.com/Nowidas/Feel-alignment-v3)
+
 ## 1. Android (Plik .apk)
 Możesz to zrobić na Windowsie lub Macu. Nie potrzebujesz płatnego konta Google.
 
@@ -60,23 +62,72 @@ To utworzy folder `ios` w Twoim projekcie.
     ```bash
     xed ios
     ```
-    (lub otwórz plik `ios/FeelingAlignment.xcworkspace` ręcznie).
+    (lub otwórz plik `ios/apptest2.xcworkspace` ręcznie).
 2.  W Xcode kliknij na główny projekt (niebieska ikona po lewej na górze).
-3.  Wybierz zakładkę **Signing & Capabilities**.
-4.  Kliknij **Add Account** i zaloguj się swoim darmowym Apple ID.
-5.  W polu **Team** wybierz swoje imię/nazwisko (Personal Team).
-6.  Jeśli pojawi się błąd o "Bundle Identifier", zmień go na unikalny (np. dopisz cyfry na końcu).
+3.  Wybierz **target** (nie projekt!) - zwykle nazywa się tak samo jak projekt.
+4.  Wybierz zakładkę **Signing & Capabilities**.
+5.  Kliknij **Add Account** i zaloguj się swoim darmowym Apple ID.
+6.  W polu **Team** wybierz swoje imię/nazwisko (Personal Team).
+7.  Jeśli pojawi się błąd o "Bundle Identifier", zmień go na unikalny (np. dopisz cyfry na końcu).
 
-### Krok D: Instalacja na iPhonie
+#### Rozwiązywanie problemu z Push Notifications
+Jeśli pojawi się błąd: *"Cannot create provisioning profile... does not support Push Notification capability"*:
+1.  W zakładce **Signing & Capabilities** znajdź sekcję **Push Notifications**.
+2.  Kliknij przycisk **–** (minus) obok tej sekcji, aby ją usunąć.
+3.  Xcode powinien teraz automatycznie utworzyć provisioning profile.
+
+> **Uwaga:** Lokalne powiadomienia (przypomnienia) nadal będą działać. Tylko zdalne push notifications z serwera nie będą działać, ale aplikacja ich nie używa.
+
+### Krok D: Tworzenie bundle JavaScript
+**Ten krok jest wymagany!** Bez niego aplikacja wyświetli błąd "No script URL provided".
+
+W terminalu (w folderze projektu na Macu) wpisz:
+```bash
+npx react-native bundle --platform ios --dev false --entry-file index.js --bundle-output ios/main.jsbundle --assets-dest ios
+```
+
+Następnie w Xcode:
+1.  W lewym panelu kliknij prawym przyciskiem na folder projektu.
+2.  Wybierz **Add Files to "apptest2"**.
+3.  Znajdź i dodaj plik `ios/main.jsbundle` (jeśli nie został dodany automatycznie).
+
+### Krok E: Instalacja na iPhonie
 1.  Podłącz iPhone'a kablem do Maca.
 2.  W Xcode na górnym pasku wybierz swój telefon z listy urządzeń (zamiast symulatora).
 3.  Kliknij przycisk **Play** (trójkąt) w lewym górnym rogu.
-4.  Poczekaj, aż aplikacja się zbuduje i zainstaluje.
+4.  Gdy Xcode poprosi o **hasło do pęku kluczy** - wpisz hasło logowania do Maca.
+5.  Poczekaj, aż aplikacja się zbuduje i zainstaluje.
 
-### Krok E: Uruchomienie
+### Krok F: Uruchomienie
 1.  Na iPhonie wejdź w **Ustawienia -> Ogólne -> VPN i zarządzanie urządzeniami**.
 2.  Kliknij w swój email (Developer App).
 3.  Wybierz **Zaufaj** (Trust).
 4.  Teraz możesz uruchomić aplikację!
 
 > **Ważne:** Na darmowym koncie aplikacja wygasa co **7 dni**. Po tym czasie musisz ponownie podłączyć telefon do Maca i kliknąć "Play" w Xcode, aby ją odświeżyć.
+
+---
+
+## 3. Aktualizacja aplikacji iOS
+Jeśli wprowadzisz zmiany w kodzie i chcesz zaktualizować aplikację na iPhonie:
+
+1.  Skopiuj zaktualizowany kod na Maca.
+2.  W terminalu (w folderze projektu):
+    ```bash
+    npm install
+    npx react-native bundle --platform ios --dev false --entry-file index.js --bundle-output ios/main.jsbundle --assets-dest ios
+    ```
+3.  Otwórz Xcode, podłącz telefon i kliknij **Play**.
+
+---
+
+## Rozwiązywanie problemów
+
+### Błąd: "No script URL provided"
+Oznacza brak bundle JavaScript. Wykonaj krok D (tworzenie bundle).
+
+### Błąd: "Cannot create provisioning profile... Push Notification"
+Usuń capability Push Notifications w Xcode (patrz krok C).
+
+### Aplikacja się nie uruchamia po 7 dniach
+Podłącz telefon do Maca i kliknij Play w Xcode - to odnowi certyfikat.
