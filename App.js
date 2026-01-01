@@ -146,17 +146,28 @@ export default function App() {
       // If user changed time OR it's a new schedule
       await Notifications.cancelAllScheduledNotificationsAsync();
 
+      // Calculate next trigger date
+      const now = new Date();
+      const triggerDate = new Date();
+      triggerDate.setHours(hours, minutes, 0, 0);
+      
+      // If the time has already passed today, schedule for tomorrow
+      if (triggerDate <= now) {
+        triggerDate.setDate(triggerDate.getDate() + 1);
+      }
+
+      // Schedule notification with date trigger (works on both platforms)
       await Notifications.scheduleNotificationAsync({
         content: {
           title: "FeelingAlignment 📝",
           body: "Plss tell me about your day 👉👈",
           sound: true,
+          ...(Platform.OS === 'android' && { channelId: 'daily-reminder' }),
         },
         trigger: {
+          type: Notifications.SchedulableTriggerInputTypes.DAILY,
           hour: hours,
           minute: minutes,
-          repeats: true,
-          channelId: 'daily-reminder',
         },
       });
 

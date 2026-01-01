@@ -6,7 +6,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS, ICON_MAP, DAYS_MAP } from '../constants/theme';
 import { getLocalYYYYMMDD } from '../utils/helpers';
 
-const SettingsScreen = ({ user, setUser, userHabits, setUserHabits, syncWithCloud, isSyncing }) => {
+const SettingsScreen = ({ user, setUser, userHabits, setUserHabits, syncWithCloud, isSyncing, scheduleNotification }) => {
   const [newHabitName, setNewHabitName] = useState('');
   const [newHabitIcon, setNewHabitIcon] = useState('droplet');
   const [newHabitMandatory, setNewHabitMandatory] = useState(false);
