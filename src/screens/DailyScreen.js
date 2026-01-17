@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
-import { Calendar as CalendarIcon, Send, Check, ChevronLeft, ChevronRight, BookHeart } from 'lucide-react-native';
+import { Calendar as CalendarIcon, Send, Check, ChevronLeft, ChevronRight, BookHeart, ChevronDown as ChevronDownIcon, ChevronUp as ChevronUpIcon } from 'lucide-react-native';
 import { COLORS, ICON_MAP, DAYS_MAP } from '../constants/theme';
 import { getLocalYYYYMMDD, formatDateLabel, getMoodColor, getMoodIcon, isHabitActiveForDate } from '../utils/helpers';
 import MoodSlider from '../components/MoodSlider';
@@ -11,6 +11,7 @@ const DailyScreen = ({
   userHabits, history, onSave, editingId, currentPrompt 
 }) => {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [isRareExpanded, setIsRareExpanded] = useState(false);
   const [calendarViewDate, setCalendarViewDate] = useState(new Date());
 
   const getMoodIconComponent = (val) => {
@@ -127,7 +128,59 @@ const DailyScreen = ({
             <Text style={[styles.moodValue, { color: getMoodColor(dailyEntry.mood) }]}>{dailyEntry.mood}/5</Text>
             <MoodSlider value={dailyEntry.mood} onChange={(v) => setDailyEntry({...dailyEntry, mood: v})} />
         </View>
-        <View style={styles.habitsGrid}>{userHabits.filter(h => isHabitActiveForDate(h, selectedDate)).map(h => { const isActive = dailyEntry.habits.includes(h.id); const Icon = ICON_MAP[h.icon] || Check; return ( <TouchableOpacity key={h.id} style={[styles.habitChip, isActive && styles.habitChipActive, h.mandatory && !isActive && styles.habitChipMandatory]} onPress={() => { const newH = isActive ? dailyEntry.habits.filter(id => id !== h.id) : [...dailyEntry.habits, h.id]; setDailyEntry({...dailyEntry, habits: newH}); }}><Icon size={14} color={isActive ? COLORS.white : COLORS.stone500} /><Text style={[styles.habitText, isActive && styles.habitTextActive]}>{h.name}</Text></TouchableOpacity> )})}</View>
+        <View style={styles.habitsGrid}>
+          {userHabits.filter(h => isHabitActiveForDate(h, selectedDate) && h.category !== 'rare').map(h => {
+            const isActive = dailyEntry.habits.includes(h.id);
+            const Icon = ICON_MAP[h.icon] || Check;
+            return (
+              <TouchableOpacity
+                key={h.id}
+                style={[styles.habitChip, isActive && styles.habitChipActive, h.mandatory && !isActive && styles.habitChipMandatory]}
+                onPress={() => {
+                  const newH = isActive ? dailyEntry.habits.filter(id => id !== h.id) : [...dailyEntry.habits, h.id];
+                  setDailyEntry({...dailyEntry, habits: newH});
+                }}
+              >
+                <Icon size={14} color={isActive ? COLORS.white : COLORS.stone500} />
+                <Text style={[styles.habitText, isActive && styles.habitTextActive]}>{h.name}</Text>
+              </TouchableOpacity>
+            )
+          })}
+        </View>
+
+        {userHabits.some(h => isHabitActiveForDate(h, selectedDate) && h.category === 'rare') && (
+          <View style={{marginTop: 10, borderTopWidth: 1, borderColor: COLORS.stone50, paddingTop: 10}}>
+            <TouchableOpacity
+              style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, marginBottom: 10}}
+              onPress={() => setIsRareExpanded(!isRareExpanded)}
+            >
+              <Text style={{fontSize: 10, fontWeight: '800', color: COLORS.stone400, textTransform: 'uppercase', letterSpacing: 1}}>Rzadkie Nawyki</Text>
+              {isRareExpanded ? <ChevronUpIcon size={14} color={COLORS.stone400} /> : <ChevronDownIcon size={14} color={COLORS.stone400} />}
+            </TouchableOpacity>
+
+            {isRareExpanded && (
+              <View style={styles.habitsGrid}>
+                {userHabits.filter(h => isHabitActiveForDate(h, selectedDate) && h.category === 'rare').map(h => {
+                  const isActive = dailyEntry.habits.includes(h.id);
+                  const Icon = ICON_MAP[h.icon] || Check;
+                  return (
+                    <TouchableOpacity
+                      key={h.id}
+                      style={[styles.habitChip, isActive && styles.habitChipActive, h.mandatory && !isActive && styles.habitChipMandatory]}
+                      onPress={() => {
+                        const newH = isActive ? dailyEntry.habits.filter(id => id !== h.id) : [...dailyEntry.habits, h.id];
+                        setDailyEntry({...dailyEntry, habits: newH});
+                      }}
+                    >
+                      <Icon size={14} color={isActive ? COLORS.white : COLORS.stone500} />
+                      <Text style={[styles.habitText, isActive && styles.habitTextActive]}>{h.name}</Text>
+                    </TouchableOpacity>
+                  )
+                })}
+              </View>
+            )}
+          </View>
+        )}
         <TextInput style={styles.textArea} multiline placeholder={currentPrompt} placeholderTextColor={COLORS.stone300} value={dailyEntry.text} onChangeText={t => setDailyEntry({...dailyEntry, text: t})}/>
         <TouchableOpacity style={styles.mainButton} onPress={onSave}><Send size={20} color="white" /><Text style={styles.mainButtonText}>{editingId ? 'Aktualizuj' : 'Zapisz'}</Text></TouchableOpacity>
       </View>
