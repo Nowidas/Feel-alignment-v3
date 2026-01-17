@@ -1,6 +1,7 @@
 import { 
   Droplet, Moon, Sun, BookOpen, Dumbbell, Music, Coffee, 
-  Laptop, Briefcase, Heart, Check
+  Laptop, Briefcase, Heart, Check, Circle, Star, Zap,
+  Flame, Smile, Shield, Cat, Ghost
 } from 'lucide-react-native';
 
 export const COLORS = {
@@ -34,9 +35,11 @@ export const COLORS = {
 };
 
 export const ICON_MAP = {
-  'droplet': Droplet, 'moon': Moon, 'sun': Sun, 'book': BookOpen, 
-  'dumbbell': Dumbbell, 'music': Music, 'coffee': Coffee, 'laptop': Laptop, 
-  'briefcase': Briefcase, 'heart': Heart, 'check': Check
+  'circle': Circle, 'droplet': Droplet, 'moon': Moon, 'sun': Sun,
+  'book': BookOpen, 'dumbbell': Dumbbell, 'music': Music, 'coffee': Coffee,
+  'laptop': Laptop, 'briefcase': Briefcase, 'heart': Heart, 'star': Star,
+  'zap': Zap, 'flame': Flame, 'smile': Smile, 'shield': Shield,
+  'cat': Cat, 'ghost': Ghost, 'check': Check
 };
 
 export const DAYS_MAP = ['Nd', 'Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'Sb'];

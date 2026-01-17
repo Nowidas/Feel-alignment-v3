@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Alert, Platform } from 'react-native';
-import { RefreshCw, Trash2 } from 'lucide-react-native';
+import { RefreshCw, Trash2, ChevronUp, ChevronDown } from 'lucide-react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS, ICON_MAP, DAYS_MAP } from '../constants/theme';
@@ -8,8 +8,9 @@ import { getLocalYYYYMMDD } from '../utils/helpers';
 
 const SettingsScreen = ({ user, setUser, userHabits, setUserHabits, syncWithCloud, isSyncing, scheduleNotification }) => {
   const [newHabitName, setNewHabitName] = useState('');
-  const [newHabitIcon, setNewHabitIcon] = useState('droplet');
+  const [newHabitIcon, setNewHabitIcon] = useState('circle');
   const [newHabitMandatory, setNewHabitMandatory] = useState(false);
+  const [newHabitCategory, setNewHabitCategory] = useState('standard'); // 'standard' or 'rare'
   const [newHabitFrequency, setNewHabitFrequency] = useState([0,1,2,3,4,5,6]); 
   const [showTimePicker, setShowTimePicker] = useState(false); 
 
@@ -48,6 +49,7 @@ const SettingsScreen = ({ user, setUser, userHabits, setUserHabits, syncWithClou
       name: newHabitName,
       icon: newHabitIcon,
       mandatory: newHabitMandatory,
+      category: newHabitCategory,
       frequency: newHabitFrequency,
       created: new Date().toISOString().split('T')[0] // Using simple date for creation
     };
@@ -56,8 +58,32 @@ const SettingsScreen = ({ user, setUser, userHabits, setUserHabits, syncWithClou
     await AsyncStorage.setItem('fa_habits', JSON.stringify(updatedHabits));
     setNewHabitName('');
     setNewHabitMandatory(false);
+    setNewHabitCategory('standard');
     setNewHabitFrequency([0,1,2,3,4,5,6]);
     Alert.alert("Sukces", "Dodano nowy nawyk");
+  };
+
+  const moveHabit = async (id, direction) => {
+    const index = userHabits.findIndex(h => h.id === id);
+    if (index === -1) return;
+
+    let targetIndex = -1;
+    if (direction === 'up') {
+      for (let i = index - 1; i >= 0; i--) {
+        if (!userHabits[i].archived) { targetIndex = i; break; }
+      }
+    } else {
+      for (let i = index + 1; i < userHabits.length; i++) {
+        if (!userHabits[i].archived) { targetIndex = i; break; }
+      }
+    }
+
+    if (targetIndex !== -1) {
+      const updatedHabits = [...userHabits];
+      [updatedHabits[index], updatedHabits[targetIndex]] = [updatedHabits[targetIndex], updatedHabits[index]];
+      setUserHabits(updatedHabits);
+      await AsyncStorage.setItem('fa_habits', JSON.stringify(updatedHabits));
+    }
   };
 
   const handleDeleteHabit = async (id) => {
@@ -86,6 +112,7 @@ const SettingsScreen = ({ user, setUser, userHabits, setUserHabits, syncWithClou
        <View style={styles.settingRow}><Text>Synchronizacja</Text><TouchableOpacity onPress={()=>syncWithCloud(user, true)}><RefreshCw size={20} color={COLORS.stone800} className={isSyncing?'animate-spin':''}/></TouchableOpacity></View>
        
        <View style={styles.inputGroup}><Text style={styles.label}>Twój Nick</Text><TextInput style={styles.input} value={user.nick} onChangeText={t => setUser({...user, nick: t})} onEndEditing={() => AsyncStorage.setItem('fa_user', JSON.stringify(user))} /></View>
+       <View style={styles.inputGroup}><Text style={styles.label}>Link do Profilowego</Text><TextInput style={styles.input} placeholder="https://..." value={user.profilePic} onChangeText={t => setUser({...user, profilePic: t})} onEndEditing={() => AsyncStorage.setItem('fa_user', JSON.stringify(user))} /></View>
        <View style={styles.inputGroup}><Text style={styles.label}>Nick Znajomego</Text><TextInput style={styles.input} value={user.partnerNick} onChangeText={t => setUser({...user, partnerNick: t})} onEndEditing={() => AsyncStorage.setItem('fa_user', JSON.stringify(user))} /></View>
 
        <View style={styles.inputGroup}><Text style={styles.label}>API Endpoint</Text><TextInput style={[styles.input, {fontSize: 10}]} value={user.apiEndpoint} onChangeText={t => setUser({...user, apiEndpoint: t})} onEndEditing={() => AsyncStorage.setItem('fa_user', JSON.stringify(user))} /></View>
@@ -135,9 +162,40 @@ const SettingsScreen = ({ user, setUser, userHabits, setUserHabits, syncWithClou
             onChangeText={setNewHabitName} 
          />
          <View style={styles.settingRow}><Text style={styles.smallLabel}>Obowiązkowy?</Text><TouchableOpacity onPress={() => setNewHabitMandatory(!newHabitMandatory)}><View style={[styles.toggle, newHabitMandatory && styles.toggleActive]}><View style={[styles.toggleKnob, newHabitMandatory && styles.toggleKnobActive]}/></View></TouchableOpacity></View>
+         <View style={styles.settingRow}>
+           <Text style={styles.smallLabel}>Kategoria:</Text>
+           <View style={{flexDirection: 'row', gap: 8}}>
+             <TouchableOpacity
+               onPress={() => setNewHabitCategory('standard')}
+               style={[styles.miniBtn, newHabitCategory === 'standard' && styles.miniBtnActive]}
+             >
+               <Text style={[styles.miniBtnText, newHabitCategory === 'standard' && styles.miniBtnTextActive]}>Standard</Text>
+             </TouchableOpacity>
+             <TouchableOpacity
+               onPress={() => setNewHabitCategory('rare')}
+               style={[styles.miniBtn, newHabitCategory === 'rare' && styles.miniBtnActive]}
+             >
+               <Text style={[styles.miniBtnText, newHabitCategory === 'rare' && styles.miniBtnTextActive]}>Rzadki</Text>
+             </TouchableOpacity>
+           </View>
+         </View>
          <View style={{marginBottom: 10}}><Text style={styles.smallLabel}>Dni:</Text><View style={{flexDirection:'row', justifyContent:'space-between', marginTop: 5}}>{DAYS_MAP.map((d, i) => ( <TouchableOpacity key={i} onPress={() => toggleNewHabitDay(i)} style={[styles.dayBtn, newHabitFrequency.includes(i) && styles.dayBtnActive]}><Text style={[styles.dayBtnText, newHabitFrequency.includes(i) && styles.dayBtnTextActive]}>{d}</Text></TouchableOpacity> ))}</View></View>
          <TouchableOpacity style={styles.mainButton} onPress={handleAddHabit}><Text style={styles.mainButtonText}>Dodaj</Text></TouchableOpacity></View>
-         {userHabits.filter(h => !h.archived).map(h => (<View key={h.id} style={styles.habitRow}><Text style={{fontWeight:'bold', color:COLORS.stone600}}>{h.name}</Text><TouchableOpacity onPress={()=>handleDeleteHabit(h.id)}><Trash2 size={16} color={COLORS.stone300}/></TouchableOpacity></View>))}
+         {userHabits.filter(h => !h.archived).map((h, idx, filtered) => (
+           <View key={h.id} style={styles.habitRow}>
+             <View style={{flexDirection:'row', alignItems:'center', gap:10}}>
+               <View style={{flexDirection:'column'}}>
+                 <TouchableOpacity onPress={()=>moveHabit(h.id, 'up')}><ChevronUp size={14} color={COLORS.stone400}/></TouchableOpacity>
+                 <TouchableOpacity onPress={()=>moveHabit(h.id, 'down')}><ChevronDown size={14} color={COLORS.stone400}/></TouchableOpacity>
+               </View>
+               <View>
+                <Text style={{fontWeight:'bold', color:COLORS.stone600}}>{h.name}</Text>
+                <Text style={{fontSize:9, color:COLORS.stone400, textTransform:'uppercase'}}>{h.category === 'rare' ? 'Rzadki' : 'Standard'}</Text>
+               </View>
+             </View>
+             <TouchableOpacity onPress={()=>handleDeleteHabit(h.id)}><Trash2 size={16} color={COLORS.stone300}/></TouchableOpacity>
+           </View>
+         ))}
        </View>
     </View>
   );
@@ -167,6 +225,10 @@ const styles = StyleSheet.create({
   mainButton: { backgroundColor: COLORS.stone800, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8, padding: 16, borderRadius: 16, marginTop: 16 },
   mainButtonText: { color: COLORS.white, fontWeight: 'bold', fontSize: 16 },
   habitRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: COLORS.stone100 },
+  miniBtn: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, backgroundColor: COLORS.stone100, borderWidth: 1, borderColor: COLORS.stone200 },
+  miniBtnActive: { backgroundColor: COLORS.stone800, borderColor: COLORS.stone800 },
+  miniBtnText: { fontSize: 10, fontWeight: '700', color: COLORS.stone500 },
+  miniBtnTextActive: { color: COLORS.white },
 });
 
 export default SettingsScreen;

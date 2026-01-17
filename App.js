@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   View, Text, TouchableOpacity, ScrollView, 
   Alert, StatusBar, StyleSheet, Platform, ActivityIndicator,
-  KeyboardAvoidingView, Keyboard
+  KeyboardAvoidingView, Keyboard, Image
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'; 
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -46,7 +46,8 @@ export default function App() {
   // --- STATE ---
   const [view, setView] = useState('loading'); 
   const [user, setUser] = useState({ 
-    nick: '', partnerNick: '', notificationTime: '23:00', apiEndpoint: '', apiToken: '', dayCutoffHour: 4 
+    nick: '', partnerNick: '', notificationTime: '23:00', apiEndpoint: '', apiToken: '', dayCutoffHour: 4,
+    profilePic: ''
   });
   
   const [selectedDate, setSelectedDate] = useState(getInitialDate());
@@ -124,9 +125,21 @@ export default function App() {
   // --- NOTIFICATIONS LOGIC ---
   const scheduleNotification = async (timeStr, isUserAction = true) => {
     try {
-      const { status } = await Notifications.requestPermissionsAsync();
+      const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
+      if (existingStatus !== 'granted') {
+        const { status } = await Notifications.requestPermissionsAsync({
+          ios: {
+            allowAlert: true,
+            allowBadge: true,
+            allowSound: true,
+            allowAnnouncements: true,
+          },
+        });
+        finalStatus = status;
+      }
       
-      if (status !== 'granted') {
+      if (finalStatus !== 'granted') {
         if (isUserAction) Alert.alert("Brak uprawnień", "Powiadomienia nie są włączone w ustawieniach systemu.");
         return;
       }
@@ -134,29 +147,11 @@ export default function App() {
       const [hours, minutes] = timeStr.split(':').map(Number);
       if (isNaN(hours) || isNaN(minutes)) return;
 
-      // Check if we already scheduled this time to prevent re-scheduling on every launch
-      const lastScheduled = await AsyncStorage.getItem('lastScheduledNotificationTime');
-      
-      if (!isUserAction && lastScheduled === timeStr) {
-        // We assume it's already set correctly. 
-        // We skip the system check to be absolutely sure we don't trigger anything.
-        return;
-      }
-
       // If user changed time OR it's a new schedule
       await Notifications.cancelAllScheduledNotificationsAsync();
 
-      // Calculate next trigger date
-      const now = new Date();
-      const triggerDate = new Date();
-      triggerDate.setHours(hours, minutes, 0, 0);
-      
-      // If the time has already passed today, schedule for tomorrow
-      if (triggerDate <= now) {
-        triggerDate.setDate(triggerDate.getDate() + 1);
-      }
-
-      // Schedule notification with date trigger (works on both platforms)
+      // Schedule notification with daily trigger
+      // Using direct object format for best compatibility across Expo versions
       await Notifications.scheduleNotificationAsync({
         content: {
           title: "FeelingAlignment 📝",
@@ -165,19 +160,26 @@ export default function App() {
           ...(Platform.OS === 'android' && { channelId: 'daily-reminder' }),
         },
         trigger: {
-          type: Notifications.SchedulableTriggerInputTypes.DAILY,
           hour: hours,
           minute: minutes,
+          repeats: true,
         },
       });
 
       // Save the scheduled time
       await AsyncStorage.setItem('lastScheduledNotificationTime', timeStr);
 
-      if (isUserAction) Alert.alert("Ustawiono", `Przypomnienie o ${timeStr}`);
+      if (isUserAction) {
+        if (Platform.OS === 'ios') {
+          // On iOS, sometimes notifications don't show up in development if not careful
+          Alert.alert("Ustawiono", `Przypomnienie o ${timeStr}. Upewnij się, że masz włączone powiadomienia w ustawieniach.`);
+        } else {
+          Alert.alert("Ustawiono", `Przypomnienie o ${timeStr}`);
+        }
+      }
     } catch (error) {
-      console.log("Notification Warning (Expo Go):", error);
-      if (isUserAction) Alert.alert("Info", "Ustawiono czas. W wersji deweloperskiej powiadomienia mogą nie przychodzić.");
+      console.log("Notification Error:", error);
+      if (isUserAction) Alert.alert("Info", "Wystąpił problem przy ustawianiu powiadomienia.");
     }
   };
 
@@ -250,7 +252,7 @@ export default function App() {
     };
 
     let newHistory = editingId 
-      ? history.map(h => h.id === editingId ? newEntry : h)
+      ? history.map(h => h.id === editingId ? { ...newEntry, reactions: h.reactions || {} } : h)
       : [newEntry, ...history];
     
     newHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -263,6 +265,30 @@ export default function App() {
     setDailyEntry({ mood: 3, text: '', habits: [] });
     setEditingId(null);
     showToast("Twój dzień został zapisany.");
+  };
+
+  const toggleReaction = async (entryId, emoji) => {
+    const updatedHistory = history.map(entry => {
+      if (entry.id === entryId) {
+        const reactions = { ...(entry.reactions || {}) };
+        const myNick = user.nick;
+        if (!reactions[emoji]) reactions[emoji] = [];
+
+        if (reactions[emoji].includes(myNick)) {
+          reactions[emoji] = reactions[emoji].filter(n => n !== myNick);
+        } else {
+          reactions[emoji] = [...reactions[emoji], myNick];
+        }
+
+        const newEntry = { ...entry, reactions };
+        pushEntry(newEntry, 'save'); // Sync with cloud
+        return newEntry;
+      }
+      return entry;
+    });
+
+    setHistory(updatedHistory);
+    await AsyncStorage.setItem('fa_history', JSON.stringify(updatedHistory));
   };
 
   const deleteEntry = async (id) => {
@@ -323,7 +349,11 @@ export default function App() {
           <Text style={styles.headerSubtitle}>Dziennik Uczuć</Text>
         </View>
         <View style={styles.avatar}>
-          <Text style={styles.avatarText}>{user.nick[0]}</Text>
+          {user.profilePic ? (
+            <Image source={{ uri: user.profilePic }} style={styles.avatarImg} />
+          ) : (
+            <Text style={styles.avatarText}>{user.nick ? user.nick[0] : '?'}</Text>
+          )}
         </View>
       </View>
 
@@ -358,6 +388,7 @@ export default function App() {
               userHabits={userHabits}
               onEdit={handleEditFromHistory}
               onDelete={deleteEntry}
+              onToggleReaction={toggleReaction}
             />
           )}
 
@@ -414,8 +445,9 @@ const styles = StyleSheet.create({
   header: { paddingHorizontal: 20, paddingVertical: 5, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: COLORS.bg },
   headerTitle: { fontSize: 20, fontWeight: '800', color: COLORS.stone800, letterSpacing: -0.5 },
   headerSubtitle: { fontSize: 10, textTransform: 'uppercase', letterSpacing: 1, color: COLORS.stone400, fontWeight: '700' },
-  avatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: COLORS.stone200, justifyContent: 'center', alignItems: 'center', shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 },
+  avatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: COLORS.stone200, justifyContent: 'center', alignItems: 'center', shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2, overflow: 'hidden' },
   avatarText: { fontSize: 16, fontWeight: 'bold', color: COLORS.stone600 },
+  avatarImg: { width: '100%', height: '100%' },
   scrollContent: { flex: 1, paddingHorizontal: 20 },
   navBar: { position: 'absolute', bottom: 30, left: 20, right: 20, backgroundColor: COLORS.stone900, borderRadius: 24, flexDirection: 'row', justifyContent: 'space-around', paddingVertical: 10, shadowColor: "#000", shadowOffset: {width: 0, height: 10}, shadowOpacity: 0.2, shadowRadius: 20, elevation: 10 },
   navBtn: { alignItems: 'center', gap: 4, padding: 10, minWidth: 60 },
