@@ -18,16 +18,6 @@ export const getInitialDate = (cutoffHour = 4) => {
 
 export const formatDateLabel = (dateStr) => {
   const date = new Date(dateStr);
-  const today = new Date();
-  const yesterday = new Date(today);
-  yesterday.setDate(yesterday.getDate() - 1);
-  
-  const todayStr = getLocalYYYYMMDD(today);
-  const yesterdayStr = getLocalYYYYMMDD(yesterday);
-
-  if (dateStr === todayStr) return 'Dzisiaj';
-  if (dateStr === yesterdayStr) return 'Wczoraj';
-  
   const day = date.getDate();
   const monthNames = ["stycznia", "lutego", "marca", "kwietnia", "maja", "czerwca", "lipca", "sierpnia", "września", "października", "listopada", "grudnia"];
   return `${day} ${monthNames[date.getMonth()]}`;

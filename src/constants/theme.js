@@ -38,9 +38,7 @@ export const ICON_MAP = {
   'dumbbell': Dumbbell, 'music': Music, 'coffee': Coffee, 'laptop': Laptop, 
   'briefcase': Briefcase, 'heart': Heart, 'check': Check
 };
-
-export const DAYS_MAP = ['Nd', 'Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'Sb'];
-
+export const DAYS_MAP = ['Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'Sb', 'Nd'];
 export const JOURNAL_PROMPTS = [
   "Wylej myśli na papier...", "Za co jesteś dzisiaj wdzięczny?", 
   "Co dzisiaj wywołało Twój uśmiech?", "Czego nowego się dzisiaj dowiedziałeś?", 

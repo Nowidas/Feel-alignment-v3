@@ -106,12 +106,17 @@ const StatsScreen = ({ history, user, userHabits }) => {
 
   // 2. Mood Heatmap (Last 30 days)
   const last30Days = [];
+  const partnerLast30Days = [];
   for (let i = 29; i >= 0; i--) {
       const d = new Date();
       d.setDate(d.getDate() - i);
       const dateStr = getLocalYYYYMMDD(d);
+      
       const entry = myEntries.find(e => e.date === dateStr);
       last30Days.push({ date: dateStr, mood: entry ? entry.mood : 0 });
+      
+      const partnerEntry = partnerEntries.find(e => e.date === dateStr);
+      partnerLast30Days.push({ date: dateStr, mood: partnerEntry ? partnerEntry.mood : 0 });
   }
 
   // 3. Habits (Last 30 days)
@@ -249,6 +254,27 @@ const StatsScreen = ({ history, user, userHabits }) => {
                   </View>
               )) : <Text style={styles.emptyText}>Brak danych o nawykach.</Text>}
           </View>
+
+          {/* Partner Mood Heatmap */}
+          {user.partnerNick ? (
+              <View style={styles.card}>
+                  <Text style={styles.sectionTitle}>Nastrój (30 dni) {user.partnerNick}</Text>
+                  <View style={{flexDirection: 'row', flexWrap: 'wrap', gap: 4, justifyContent: 'center'}}>
+                      {partnerLast30Days.map((d, i) => (
+                          <View 
+                              key={i} 
+                              style={{
+                                  width: 24, 
+                                  height: 24, 
+                                  borderRadius: 4, 
+                                  backgroundColor: d.mood > 0 ? getMoodColor(d.mood) : COLORS.stone100,
+                                  opacity: d.mood > 0 ? 1 : 0.5
+                              }} 
+                          />
+                      ))}
+                  </View>
+              </View>
+          ) : null}
       </View>
   );
 };

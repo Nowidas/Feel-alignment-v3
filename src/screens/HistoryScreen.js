@@ -60,8 +60,8 @@ const HistoryScreen = ({ history, user, userHabits, onEdit, onDelete }) => {
                     
                     {entry.habits && entry.habits.map((h, i) => {
                         const habitName = typeof h === 'object' ? h.name : 'Nawyk';
-                        const IconComponent = (typeof h === 'object' && h.icon && ICON_MAP[h.icon]) ? ICON_MAP[h.icon] : Check;
-                        return (<View key={`done-${i}`} style={styles.habitBadge}><IconComponent size={10} color={COLORS.stone600} /><Text style={styles.habitBadgeText}>{habitName}</Text></View>)
+                        const IconComponent = (typeof h === 'object' && h.icon && ICON_MAP[h.icon]) ? ICON_MAP[h.icon] : null;
+                        return (<View key={`done-${i}`} style={styles.habitBadge}>{IconComponent && <IconComponent size={10} color={COLORS.stone600} />}<Text style={styles.habitBadgeText}>{habitName}</Text></View>)
                     })}
                     
                     {skippedHabits.map((h, i) => (

@@ -8,7 +8,7 @@ import { getLocalYYYYMMDD } from '../utils/helpers';
 
 const SettingsScreen = ({ user, setUser, userHabits, setUserHabits, syncWithCloud, isSyncing, scheduleNotification }) => {
   const [newHabitName, setNewHabitName] = useState('');
-  const [newHabitIcon, setNewHabitIcon] = useState('droplet');
+  const [newHabitIcon, setNewHabitIcon] = useState('');
   const [newHabitMandatory, setNewHabitMandatory] = useState(false);
   const [newHabitFrequency, setNewHabitFrequency] = useState([0,1,2,3,4,5,6]); 
   const [showTimePicker, setShowTimePicker] = useState(false); 
@@ -55,6 +55,7 @@ const SettingsScreen = ({ user, setUser, userHabits, setUserHabits, syncWithClou
     setUserHabits(updatedHabits);
     await AsyncStorage.setItem('fa_habits', JSON.stringify(updatedHabits));
     setNewHabitName('');
+    setNewHabitIcon('');
     setNewHabitMandatory(false);
     setNewHabitFrequency([0,1,2,3,4,5,6]);
     Alert.alert("Sukces", "Dodano nowy nawyk");
@@ -126,7 +127,7 @@ const SettingsScreen = ({ user, setUser, userHabits, setUserHabits, syncWithClou
        <View style={{marginTop:20, borderTopWidth:1, borderColor:COLORS.stone100, paddingTop:10}}>
          <Text style={styles.sectionTitle}>Zarządzanie Nawykami</Text>
          <View style={styles.addHabitForm}><Text style={styles.subLabel}>Dodaj nowy</Text>
-         <View style={styles.iconRow}><ScrollView horizontal showsHorizontalScrollIndicator={false}>{Object.keys(ICON_MAP).filter(k=>k!=='check').map(key => { const Icon = ICON_MAP[key]; return ( <TouchableOpacity key={key} onPress={() => setNewHabitIcon(key)} style={[styles.iconBtn, newHabitIcon === key && styles.iconBtnActive]}><Icon size={16} color={newHabitIcon === key ? COLORS.white : COLORS.stone400} /></TouchableOpacity> ) })}</ScrollView></View>
+         <View style={styles.iconRow}><ScrollView horizontal showsHorizontalScrollIndicator={false}><TouchableOpacity onPress={() => setNewHabitIcon('')} style={[styles.iconBtn, newHabitIcon === '' && styles.iconBtnActive]}><Text style={{fontSize: 10, color: newHabitIcon === '' ? COLORS.white : COLORS.stone400, fontWeight: 'bold'}}>Brak</Text></TouchableOpacity>{Object.keys(ICON_MAP).filter(k=>k!=='check').map(key => { const Icon = ICON_MAP[key]; return ( <TouchableOpacity key={key} onPress={() => setNewHabitIcon(key)} style={[styles.iconBtn, newHabitIcon === key && styles.iconBtnActive]}><Icon size={16} color={newHabitIcon === key ? COLORS.white : COLORS.stone400} /></TouchableOpacity> ) })}</ScrollView></View>
          <TextInput 
             style={[styles.input, {marginBottom:10}]} 
             placeholder="Nazwa nawyku" 

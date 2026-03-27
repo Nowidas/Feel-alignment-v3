@@ -189,7 +189,7 @@ export default function App() {
     }
     setIsSyncing(true);
     try {
-      const url = `${currentUser.apiEndpoint}?token=${currentUser.apiToken || ''}`;
+      const url = `${currentUser.apiEndpoint}?token=${currentUser.apiToken || ''}&_t=${Date.now()}`;
       const response = await fetch(url);
       const cloudData = await response.json();
       
@@ -201,6 +201,7 @@ export default function App() {
            item.nick === currentUser.nick || item.nick === currentUser.partnerNick
         ).map(item => ({
            ...item,
+           id: item.id ? String(item.id) : undefined,
            date: item.date.length > 10 ? getLocalYYYYMMDD(item.date) : item.date 
         }));
         
@@ -219,11 +220,13 @@ export default function App() {
   const pushEntry = async (entry, action = 'save') => {
     if (!user.apiEndpoint) return;
     try {
-      await fetch(user.apiEndpoint, {
+      const response = await fetch(user.apiEndpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain' }, 
         body: JSON.stringify({ ...entry, token: user.apiToken, action })
       });
+      const responseData = await response.json();
+      // Możesz dodać z powrotem console.log("ODPOWIEDZ SERWERA", responseData); w razie problemów
     } catch (e) { console.log("Push fail", e); }
   };
 
@@ -250,7 +253,7 @@ export default function App() {
     };
 
     let newHistory = editingId 
-      ? history.map(h => h.id === editingId ? newEntry : h)
+      ? history.map(h => String(h.id) === String(editingId) ? newEntry : h)
       : [newEntry, ...history];
     
     newHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -347,7 +350,9 @@ export default function App() {
               history={history}
               onSave={handleSaveEntry}
               editingId={editingId}
+              setEditingId={setEditingId}
               currentPrompt={currentPrompt}
+              onEdit={handleEditFromHistory}
             />
           )}
 

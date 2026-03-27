@@ -5,10 +5,9 @@ import { COLORS, ICON_MAP, DAYS_MAP } from '../constants/theme';
 import { getLocalYYYYMMDD, formatDateLabel, getMoodColor, getMoodIcon, isHabitActiveForDate } from '../utils/helpers';
 import MoodSlider from '../components/MoodSlider';
 import { Smile, Frown, Meh } from 'lucide-react-native';
-
 const DailyScreen = ({ 
   user, selectedDate, setSelectedDate, dailyEntry, setDailyEntry, 
-  userHabits, history, onSave, editingId, currentPrompt 
+  userHabits, history, onSave, editingId, currentPrompt, onEdit, setEditingId
 }) => {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [calendarViewDate, setCalendarViewDate] = useState(new Date());
@@ -27,13 +26,15 @@ const DailyScreen = ({
     
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
-    
-    const daysInMonth = lastDay.getDate();
+        const daysInMonth = lastDay.getDate();
     const startDayOfWeek = firstDay.getDay(); // 0 = Sunday
     
+    // Adjust startDayOfWeek to make Monday (1) -> 0, Sunday (0) -> 6
+    const adjustedStartDay = startDayOfWeek === 0 ? 6 : startDayOfWeek - 1;
+    
     const days = [];
-    for (let i = 0; i < startDayOfWeek; i++) {
-      days.push(<View key={`empty-${i}`} style={{width: 32, height: 32, margin: 2}} />);
+    for (let i = 0; i < adjustedStartDay; i++) {
+      days.push(<View key={`empty-${i}`} style={{ width: '14.28%', alignItems: 'center', paddingVertical: 2 }}><View style={{width: 32, height: 32}} /></View>);
     }
     
     for (let d = 1; d <= daysInMonth; d++) {
@@ -44,26 +45,26 @@ const DailyScreen = ({
       const hasPartnerEntry = user.partnerNick && history.some(h => h.date === dateStr && h.nick === user.partnerNick);
       
       days.push(
-        <TouchableOpacity 
-          key={d} 
-          style={[
-            styles.dayBtn, 
-            { margin: 2 },
-            isSelected && styles.dayBtnActive
-          ]} 
-          onPress={() => {
-            setSelectedDate(dateStr);
-            setDailyEntry({mood: 3, text: '', habits: []});
-            // setEditingId(null); // This should be handled by parent or passed down
-            setIsCalendarOpen(false);
-          }}
-        >
-          <Text style={[styles.dayBtnText, isSelected && styles.dayBtnTextActive]}>{d}</Text>
-          <View style={{flexDirection: 'row', gap: 2, position: 'absolute', bottom: 4}}>
-            {hasMyEntry && <View style={{width: 4, height: 4, borderRadius: 2, backgroundColor: isSelected ? COLORS.emerald400 : COLORS.emerald500}} />}
-            {hasPartnerEntry && <View style={{width: 4, height: 4, borderRadius: 2, backgroundColor: isSelected ? COLORS.amber400 : COLORS.amber500}} />}
-          </View>
-        </TouchableOpacity>
+        <View key={`daywrap-${d}`} style={{ width: '14.28%', alignItems: 'center', paddingVertical: 2 }}>
+          <TouchableOpacity 
+            style={[
+              styles.dayBtn, 
+              isSelected && styles.dayBtnActive
+            ]} 
+            onPress={() => {
+              setSelectedDate(dateStr);
+              setDailyEntry({mood: 3, text: '', habits: []});
+              if (setEditingId) setEditingId(null);
+              setIsCalendarOpen(false);
+            }}
+          >
+            <Text style={[styles.dayBtnText, isSelected && styles.dayBtnTextActive]}>{d}</Text>
+            <View style={{flexDirection: 'row', gap: 2, position: 'absolute', bottom: 4}}>
+              {hasMyEntry && <View style={{width: 4, height: 4, borderRadius: 2, backgroundColor: isSelected ? COLORS.emerald400 : COLORS.emerald500}} />}
+              {hasPartnerEntry && <View style={{width: 4, height: 4, borderRadius: 2, backgroundColor: isSelected ? COLORS.amber400 : COLORS.amber500}} />}
+            </View>
+          </TouchableOpacity>
+        </View>
       );
     }
 
@@ -80,8 +81,12 @@ const DailyScreen = ({
             <ChevronRight size={24} color={COLORS.stone800} />
           </TouchableOpacity>
         </View>
-        <View style={{flexDirection: 'row', justifyContent: 'space-around', marginBottom: 8}}>
-          {DAYS_MAP.map(d => <Text key={d} style={{width: 32, textAlign: 'center', fontSize: 10, fontWeight: 'bold', color: COLORS.stone400}}>{d}</Text>)}
+        <View style={{flexDirection: 'row', flexWrap: 'wrap', marginBottom: 8}}>
+          {DAYS_MAP.map(d => (
+            <View key={d} style={{ width: '14.28%', alignItems: 'center' }}>
+              <Text style={{fontSize: 10, fontWeight: 'bold', color: COLORS.stone400}}>{d}</Text>
+            </View>
+          ))}
         </View>
         <View style={styles.calendarGrid}>
           {days}
@@ -103,14 +108,16 @@ const DailyScreen = ({
           const isToday = selectedDate === todayStr;
           const isYesterday = selectedDate === yesterdayStr;
           const isOther = !isToday && !isYesterday;
+          const DAYS_MAP_PL = ['nd', 'pn', 'wt', 'śr', 'cz', 'pt', 'sb'];
+          const getDayName = (dStr) => DAYS_MAP_PL[new Date(dStr).getDay()];
 
           return (
             <>
-              <TouchableOpacity style={[styles.dateBtn, isToday && styles.dateBtnActive]} onPress={() => {setSelectedDate(todayStr); setDailyEntry({mood:3,text:'',habits:[]}); }}>
-                <Text style={[styles.dateBtnText, isToday && styles.dateBtnTextActive]}>Dziś</Text>
+              <TouchableOpacity style={[styles.dateBtn, isToday && styles.dateBtnActive]} onPress={() => {setSelectedDate(todayStr); setDailyEntry({mood:3,text:'',habits:[]}); if(setEditingId) setEditingId(null); }}>
+                <Text style={[styles.dateBtnText, isToday && styles.dateBtnTextActive]}>Dziś ({getDayName(todayStr)})</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={[styles.dateBtn, isYesterday && styles.dateBtnActive]} onPress={() => {setSelectedDate(yesterdayStr); setDailyEntry({mood:3,text:'',habits:[]}); }}>
-                <Text style={[styles.dateBtnText, isYesterday && styles.dateBtnTextActive]}>Wczoraj</Text>
+              <TouchableOpacity style={[styles.dateBtn, isYesterday && styles.dateBtnActive]} onPress={() => {setSelectedDate(yesterdayStr); setDailyEntry({mood:3,text:'',habits:[]}); if(setEditingId) setEditingId(null); }}>
+                <Text style={[styles.dateBtnText, isYesterday && styles.dateBtnTextActive]}>Wczoraj ({getDayName(yesterdayStr)})</Text>
               </TouchableOpacity>
               <TouchableOpacity style={[styles.dateBtn, isOther && styles.dateBtnActive]} onPress={() => setIsCalendarOpen(!isCalendarOpen)}>
                 <CalendarIcon size={16} color={isOther ? COLORS.white : COLORS.stone500} />
@@ -127,7 +134,7 @@ const DailyScreen = ({
             <Text style={[styles.moodValue, { color: getMoodColor(dailyEntry.mood) }]}>{dailyEntry.mood}/5</Text>
             <MoodSlider value={dailyEntry.mood} onChange={(v) => setDailyEntry({...dailyEntry, mood: v})} />
         </View>
-        <View style={styles.habitsGrid}>{userHabits.filter(h => isHabitActiveForDate(h, selectedDate)).map(h => { const isActive = dailyEntry.habits.includes(h.id); const Icon = ICON_MAP[h.icon] || Check; return ( <TouchableOpacity key={h.id} style={[styles.habitChip, isActive && styles.habitChipActive, h.mandatory && !isActive && styles.habitChipMandatory]} onPress={() => { const newH = isActive ? dailyEntry.habits.filter(id => id !== h.id) : [...dailyEntry.habits, h.id]; setDailyEntry({...dailyEntry, habits: newH}); }}><Icon size={14} color={isActive ? COLORS.white : COLORS.stone500} /><Text style={[styles.habitText, isActive && styles.habitTextActive]}>{h.name}</Text></TouchableOpacity> )})}</View>
+        <View style={styles.habitsGrid}>{userHabits.filter(h => isHabitActiveForDate(h, selectedDate)).map(h => { const isActive = dailyEntry.habits.includes(h.id); const Icon = h.icon && ICON_MAP[h.icon] ? ICON_MAP[h.icon] : null; return ( <TouchableOpacity key={h.id} style={[styles.habitChip, isActive && styles.habitChipActive, h.mandatory && !isActive && styles.habitChipMandatory]} onPress={() => { const newH = isActive ? dailyEntry.habits.filter(id => id !== h.id) : [...dailyEntry.habits, h.id]; setDailyEntry({...dailyEntry, habits: newH}); }}>{Icon && <Icon size={14} color={isActive ? COLORS.white : COLORS.stone500} />}<Text style={[styles.habitText, isActive && styles.habitTextActive]}>{h.name}</Text></TouchableOpacity> )})}</View>
         <TextInput style={styles.textArea} multiline placeholder={currentPrompt} placeholderTextColor={COLORS.stone300} value={dailyEntry.text} onChangeText={t => setDailyEntry({...dailyEntry, text: t})}/>
         <TouchableOpacity style={styles.mainButton} onPress={onSave}><Send size={20} color="white" /><Text style={styles.mainButtonText}>{editingId ? 'Aktualizuj' : 'Zapisz'}</Text></TouchableOpacity>
       </View>
@@ -136,7 +143,14 @@ const DailyScreen = ({
         {history.filter(h => h.date === selectedDate).map((e,i) => (
           <View key={i} style={[styles.historyItem, {flexDirection: 'column', gap: 8}]}>
             <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
-              <Text style={{fontWeight:'bold', fontSize: 14, color: COLORS.stone800}}>{e.nick}</Text>
+              <View style={{flexDirection: 'row', alignItems: 'center', gap: 8}}>
+                <Text style={{fontWeight:'bold', fontSize: 14, color: COLORS.stone800}}>{e.nick}</Text>
+                {e.nick === user.nick && onEdit ? (
+                  <TouchableOpacity onPress={() => onEdit(e)}>
+                    <Text style={{fontSize: 12, color: COLORS.emerald500, fontWeight: 'bold'}}>Edytuj</Text>
+                  </TouchableOpacity>
+                ) : null}
+              </View>
               <View style={{flexDirection: 'row', gap: 4, flexWrap: 'wrap', justifyContent: 'flex-end', maxWidth: '70%'}}>
                 {e.mood > 0 && (
                   <View style={{backgroundColor: getMoodColor(e.mood) + '20', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6}}>
@@ -145,10 +159,10 @@ const DailyScreen = ({
                 )}
                 {e.habits && e.habits.map((h, idx) => {
                   const habitName = typeof h === 'object' ? h.name : 'Nawyk';
-                  const IconComponent = (typeof h === 'object' && h.icon && ICON_MAP[h.icon]) ? ICON_MAP[h.icon] : Check;
+                  const IconComponent = (typeof h === 'object' && h.icon && ICON_MAP[h.icon]) ? ICON_MAP[h.icon] : null;
                   return (
                     <View key={idx} style={{flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: COLORS.stone100, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, borderWidth: 1, borderColor: COLORS.stone300}}>
-                      <IconComponent size={10} color={COLORS.stone600} />
+                      {IconComponent && <IconComponent size={10} color={COLORS.stone600} />}
                       <Text style={{fontSize: 10, color: COLORS.stone600, fontWeight: '700'}}>{habitName}</Text>
                     </View>
                   );
